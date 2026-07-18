@@ -779,7 +779,10 @@ function fitKart(){
   if(!pts.length){ kartMap.setView([46.6, 2.4], 6); return; }
   pts.push([HOME.lat, HOME.lng]);
   kartMap.fitBounds(L.latLngBounds(pts), {padding:[46,46], maxZoom:9});
-  if(kartMap.getZoom()<6) kartMap.setView([46.6, 2.4], 6);   // aldri lenger unna enn hele Frankrike
+  // hold Frankrike-utsnittet bare når alle nålene faktisk er i Frankrike —
+  // oster fra f.eks. Norge skal få kartet til å zoome ut, ikke falle utenfor
+  const allInFrance = pts.every(([la,ln]) => la>=41 && la<=51.5 && ln>=-5.5 && ln<=10);
+  if(allInFrance && kartMap.getZoom()<6) kartMap.setView([46.6, 2.4], 6);
 }
 function renderKart(){
   renderKartMissing();
@@ -859,13 +862,32 @@ function openDetail(id){
   renderDetail();
 }
 function closeDetail(){ detailId=null; $('overlay-detail').classList.add('hidden'); }
+async function editOrigin(){
+  const c = BOARD.cheeses.find(x=>x.id===detailId);
+  if(!c) return;
+  const v = prompt('Hvor er osten fra? (by/region, f.eks. «Normandie» eller «Trondheim, Norge»)', c.origin||'');
+  if(v===null) return;
+  const origin = v.trim();
+  toast(origin ? 'Finner stedet på kartet… 🌍' : 'Fjerner stedet…');
+  const geo = origin ? await geocode(origin) : null;
+  try{
+    const res = await rpc('flayost_set_origin', {p_name:SESS.name, p_pin:SESS.pin, p_cheese_id:c.id,
+      p_origin:origin, p_lat:geo?geo.lat:null, p_lng:geo?geo.lng:null});
+    if(!res || !res.ok) throw new Error(res && res.error);
+    c.origin = origin; c.lat = geo?geo.lat:null; c.lng = geo?geo.lng:null;
+    saveLocal(); renderAll();
+    toast(!origin ? 'Sted fjernet' : geo ? `📍 «${origin}» er på kartet!` : `Sted lagret – men fant ikke «${origin}» på kartet 🤷`);
+    refreshBoard();
+  }catch(e){ toast('Fikk ikke lagret stedet – sjekk nettet'); }
+}
 function renderDetail(){
   const c = BOARD.cheeses.find(x=>x.id===detailId);
   if(!c){ closeDetail(); return; }
   const mine = myRating(c.id);
   const avg = avgOf(c.id), n = ratingsFor(c.id).length;
   $('dName').textContent = c.name;
-  $('dMeta').textContent = (c.type? c.type+' · ':'') + (c.origin? '📍 '+c.origin+' · ':'') + 'lagt til av ' + c.added_by;
+  $('dMeta').innerHTML = esc((c.type? c.type+' · ':'') + (c.origin? '📍 '+c.origin+' · ':'') + 'lagt til av ' + c.added_by)
+    + ` &nbsp;<button class="ghost small" onclick="editOrigin()">${c.origin ? '✏️ endre sted' : '📍 legg til sted'}</button>`;
   $('dPhotoWrap').innerHTML = c.photo
     ? `<img class="dphoto" src="${c.photo}" alt="">`
     : `<div class="dphoto-emoji">${esc((c.type||'🧀').split(' ')[0]||'🧀')}</div>`;
@@ -1042,20 +1064,42 @@ function onPhotoPicked(input){
   };
   img.src = URL.createObjectURL(f);
 }
+/* Geokoding (Nominatim/OpenStreetMap) — så manuelt skrevne steder også
+   havner på kartet. Feiler stille: osten lagres uansett, bare uten nål. */
+async function geocode(place){
+  if(!place) return null;
+  try{
+    const ctl = new AbortController();
+    setTimeout(()=>ctl.abort(), 6000);
+    const r = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=no&q='
+      + encodeURIComponent(place), {signal:ctl.signal});
+    const js = await r.json();
+    if(js && js[0]) return {lat:+js[0].lat, lng:+js[0].lon};
+  }catch(e){}
+  return null;
+}
 async function saveCheese(){
   const name = $('addName').value.trim();
   if(!name){ toast('Skriv hva osten heter 🧀'); return; }
   const type = (addMilk[1]==='Vet ikke' ? '🧀' : addMilk[0]+' '+addMilk[1]) + (addTex ? ' · '+addTex : '');
-  // sted: fra osteforslaget (med koordinater) eller fritekstfeltet (uten)
+  // sted: fra osteforslaget (med koordinater) eller fritekstfeltet (geokodes)
   const origin = addOriginPick ? addOriginPick.origin : $('addOrigin').value.trim();
-  const lat = addOriginPick ? addOriginPick.lat : null;
-  const lng = addOriginPick ? addOriginPick.lng : null;
+  let lat = addOriginPick ? addOriginPick.lat : null;
+  let lng = addOriginPick ? addOriginPick.lng : null;
   $('addSave').disabled = true;
+  if(!addOriginPick && origin){
+    $('addSave').textContent = 'Finner stedet på kartet… 🌍';
+    const geo = await geocode(origin);
+    if(geo){ lat = geo.lat; lng = geo.lng; }
+    $('addSave').textContent = 'Legg til osten';
+  }
   try{
     const res = await rpc('flayost_add_cheese', {p_name:SESS.name, p_pin:SESS.pin, p_cheese_name:name, p_type:type, p_photo:addPhoto, p_origin:origin, p_lat:lat, p_lng:lng});
     if(!res || !res.ok) throw new Error(res && res.error);
     closeAdd();
-    toast(`«${name}» er med i smakingen! 🎉`);
+    toast(origin && lat===null
+      ? `«${name}» er med – men fant ikke «${origin}» på kartet 🤷`
+      : `«${name}» er med i smakingen! 🎉`);
     await refreshBoard();
     setTab('nyeste');
   }catch(e){
