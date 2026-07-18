@@ -95,6 +95,22 @@
   .emorow button.on{background:var(--ochre-soft); box-shadow:inset 0 0 0 3px var(--ochre); transform:scale(1.06);}
   .emorow.big button{font-size:40px; padding:13px 0 10px;}
   .empty{background:rgba(255,253,247,.75); border-radius:20px; padding:40px 20px; text-align:center; font-size:19px; font-weight:700; color:var(--muted);}
+
+  /* ---------- kart ---------- */
+  #kart{height:62vh; min-height:340px; border-radius:20px; overflow:hidden; background:var(--card); box-shadow:0 8px 24px rgba(80,50,10,.13); position:relative; z-index:0;}
+  .kart-pin{width:44px; height:44px; border-radius:50%; background:#fff; border:2px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:24px; line-height:1; box-shadow:0 8px 24px rgba(80,50,10,.13);}
+  .kart-pin.kart-home{background:var(--ochre-soft); border-color:var(--ochre);}
+  .kart-note{display:flex; align-items:center; justify-content:center; height:100%; font-weight:700; color:var(--muted); font-size:17px;}
+  .kart-pop{font-family:inherit; font-size:15px; line-height:1.55; color:var(--ink);}
+  .kart-pop b{font-size:16px;}
+  .kart-pop button{margin-top:7px; display:block;}
+  #kart-missing{margin-top:10px; padding:0 6px;}
+  #kart-missing a{color:var(--lav); font-weight:700; text-decoration:none;}
+  .kart-fb{padding:20px; height:100%; overflow-y:auto;}
+  .kart-fb p{margin:0 0 14px;}
+  .kart-fb-group{margin-bottom:14px;}
+  .kart-fb-place{font-weight:800; margin-bottom:6px;}
+  .kart-fb-group .ghost{margin:0 6px 6px 0;}
   .fab{position:fixed; right:22px; bottom:22px; background:var(--ochre); color:#fff; font-size:19px; font-weight:900; border-radius:999px; padding:17px 26px; box-shadow:0 12px 30px rgba(120,70,0,.35); z-index:40;}
 
   /* ---------- overlays ---------- */
@@ -112,6 +128,19 @@
   .rline .note{color:var(--muted); font-size:14px; flex:1; font-style:italic;}
   .rline .sc{font-size:26px; margin-left:auto;}
   .photobtn{display:flex; align-items:center; justify-content:center; gap:10px; background:var(--soft); border:2px dashed var(--line); border-radius:16px; padding:14px; font-weight:700; width:100%; font-size:16px;}
+
+  /* ---------- osteforslag (oppslag mens du skriver) ---------- */
+  .sugwrap{position:relative;}
+  .suglist{position:absolute; left:0; right:0; top:calc(100% + 6px); background:var(--card); border:2px solid var(--line); border-radius:16px; box-shadow:0 16px 38px rgba(80,50,10,.25); z-index:20; overflow:hidden; overflow-y:auto; max-height:272px;}
+  .sugitem{display:flex; align-items:center; gap:10px; width:100%; text-align:left; background:none; border-radius:0; padding:13px 14px; font-size:16px; border-bottom:1px solid var(--line); min-height:52px;}
+  .sugitem:last-child{border-bottom:none;}
+  .sugitem:active{background:var(--ochre-soft);}
+  .sugitem .smilk{font-size:22px;}
+  .sugitem .sname{font-weight:800; flex:1;}
+  .sugitem .sorig{color:var(--muted); font-size:13px; font-weight:600; text-align:right;}
+  .originline{display:flex; align-items:center; gap:8px; margin-top:8px; background:var(--ochre-soft); border:2px solid var(--line); border-radius:12px; padding:7px 8px 7px 12px; font-weight:700; font-size:14.5px;}
+  .originline .otxt{flex:1;}
+  .originline button{background:none; padding:4px 10px; font-size:16px; font-weight:900; color:var(--muted);}
   #addPreview{width:100%; border-radius:16px; max-height:240px; object-fit:cover; margin-top:8px;}
   .scorehint{text-align:center; font-weight:800; min-height:26px; margin-top:8px; color:var(--olive); font-size:17px;}
 
@@ -195,8 +224,13 @@
       <button class="tab on" id="tab-beste" onclick="setTab('beste')">🏆 Beste</button>
       <button class="tab" id="tab-nyeste" onclick="setTab('nyeste')">🆕 Nyeste</button>
       <button class="tab" id="tab-usmakt" onclick="setTab('usmakt')">👅 Ikke smakt</button>
+      <button class="tab" id="tab-kart" onclick="setTab('kart')">🗺️ Kart</button>
     </div>
     <div class="wall" id="wall"></div>
+    <div id="kart-wrap" class="hidden">
+      <div id="kart"></div>
+      <p class="mini hidden" id="kart-missing"></p>
+    </div>
     <button class="fab" onclick="openAdd()">➕ Ny ost</button>
   </div>
 </div>
@@ -232,7 +266,16 @@
       <button class="closex" onclick="closeAdd()">✕</button>
     </div>
     <label class="blk">Hva heter osten?</label>
-    <input type="text" id="addName" maxlength="60" placeholder="F.eks. Banon, Comté, Brie de Meaux…" autocomplete="off">
+    <div class="sugwrap">
+      <input type="text" id="addName" maxlength="60" placeholder="F.eks. Banon, Comté, Brie de Meaux…" autocomplete="off"
+             oninput="onAddNameInput()" onfocus="renderSuggestions()" onblur="setTimeout(hideSuggestions,200)">
+      <div class="suglist hidden" id="sugList"></div>
+    </div>
+    <div class="originline hidden" id="originLine"></div>
+    <div id="originManual">
+      <label class="blk">Hvor er den fra? <span class="mini">(valgfritt)</span></label>
+      <input type="text" id="addOrigin" maxlength="60" placeholder="F.eks. Provence, Normandie…" autocomplete="off">
+    </div>
     <label class="blk">Melk fra…</label>
     <div class="row" id="milkRow"></div>
     <label class="blk">Type <span class="mini">(valgfritt)</span></label>
@@ -267,6 +310,110 @@ const EMO_WORD = {1:'Æsj!', 2:'Nja…', 3:'Helt grei', 4:'Nam!', 5:'BESTE OSTEN
 const AVATARS = ['🦊','🐰','🦁','🐸','🐼','🦄','🐙','🦖','🐶','🐱','🐭','🐨','🐷','🐵','🦉','🐢','🦋','🐞','🐳','🦩','🌻','🍓','⚽','🚀','🎨','🎸','👑','🥐'];
 const MILKS = [['🐄','Ku'],['🐐','Geit'],['🐑','Sau'],['🤔','Vet ikke']];
 const TEXTURES = ['Myk','Fast','Blå','Fersk'];
+const MILK_EMO = {Ku:'🐄', Geit:'🐐', Sau:'🐑'};
+
+/* ---------- innebygd ostedatabase (~95 franske klassikere) ----------
+   Kuratert fra Wikidata (P186 melk, P1071/P138 opphavssted, P625 koordinater)
+   + håndsjekkede koordinater. lat/lng peker på byen/området osten kommer fra. */
+const CHEESES_FR = [
+  // myke kumelksoster
+  {name:'Camembert de Normandie', milk:'Ku', origin:'Camembert (Normandie)', lat:48.8622, lng:0.1717, tex:'Myk'},
+  {name:'Brie de Meaux', milk:'Ku', origin:'Meaux', lat:48.9603, lng:2.8883, tex:'Myk'},
+  {name:'Brie de Melun', milk:'Ku', origin:'Melun', lat:48.5406, lng:2.6531, tex:'Myk'},
+  {name:'Coulommiers', milk:'Ku', origin:'Coulommiers', lat:48.8156, lng:3.0847, tex:'Myk'},
+  {name:'Époisses', milk:'Ku', origin:'Époisses (Bourgogne)', lat:47.5069, lng:4.1733, tex:'Myk'},
+  {name:'Langres', milk:'Ku', origin:'Langres', lat:47.8625, lng:5.3331, tex:'Myk'},
+  {name:'Chaource', milk:'Ku', origin:'Chaource', lat:48.0586, lng:4.1383, tex:'Myk'},
+  {name:'Munster', milk:'Ku', origin:'Munster (Alsace)', lat:48.0414, lng:7.1342, tex:'Myk'},
+  {name:'Livarot', milk:'Ku', origin:'Livarot (Normandie)', lat:49.0064, lng:0.1519, tex:'Myk'},
+  {name:"Pont-l'Évêque", milk:'Ku', origin:"Pont-l'Évêque (Normandie)", lat:49.2864, lng:0.1897, tex:'Myk'},
+  {name:'Neufchâtel', milk:'Ku', origin:'Neufchâtel-en-Bray', lat:49.7328, lng:1.4394, tex:'Myk'},
+  {name:'Maroilles', milk:'Ku', origin:'Maroilles (Nord)', lat:50.1350, lng:3.7608, tex:'Myk'},
+  {name:"Mont d'Or", milk:'Ku', origin:"Mont d'Or (Haut-Doubs)", lat:46.7270, lng:6.3560, tex:'Myk'},
+  {name:'Saint-Marcellin', milk:'Ku', origin:'Saint-Marcellin (Isère)', lat:45.1517, lng:5.3197, tex:'Myk'},
+  {name:'Saint-Félicien', milk:'Ku', origin:'Dauphiné', lat:45.2000, lng:5.7000, tex:'Myk'},
+  {name:'Reblochon', milk:'Ku', origin:'Thônes (Haute-Savoie)', lat:45.8811, lng:6.3261, tex:'Myk'},
+  {name:'Brillat-Savarin', milk:'Ku', origin:'Normandie', lat:49.1223, lng:-0.4366, tex:'Myk'},
+  {name:'Gaperon', milk:'Ku', origin:'Auvergne', lat:45.7000, lng:3.2000, tex:'Myk'},
+  {name:'Curé Nantais', milk:'Ku', origin:'Pornic (Loire-Atlantique)', lat:47.1156, lng:-2.1039, tex:'Myk'},
+  {name:'Port-Salut', milk:'Ku', origin:'Entrammes (Mayenne)', lat:47.9989, lng:-0.7169, tex:'Myk'},
+  {name:"Carré de l'Est", milk:'Ku', origin:'Lorraine', lat:48.7000, lng:6.2000, tex:'Myk'},
+  {name:'Soumaintrain', milk:'Ku', origin:'Soumaintrain (Bourgogne)', lat:47.9700, lng:3.9700, tex:'Myk'},
+  {name:'Vieux-Lille', milk:'Ku', origin:'Lille', lat:50.6292, lng:3.0573, tex:'Myk'},
+  {name:'Vieux-Boulogne', milk:'Ku', origin:'Boulogne-sur-Mer', lat:50.7264, lng:1.6147, tex:'Myk'},
+  {name:'Caprice des Dieux', milk:'Ku', origin:'Illoud (Haute-Marne)', lat:48.1706, lng:5.5714, tex:'Myk'},
+  {name:'Saint-Albray', milk:'Ku', origin:'Béarn', lat:43.3000, lng:-0.3700, tex:'Myk'},
+  {name:'Délice de Bourgogne', milk:'Ku', origin:'Bourgogne', lat:47.0000, lng:4.5000, tex:'Myk'},
+  {name:'Chaumes', milk:'Ku', origin:'Périgord', lat:44.8442, lng:0.1547, tex:'Myk'},
+  {name:'Tamié', milk:'Ku', origin:'Abbaye de Tamié (Savoie)', lat:45.6656, lng:6.3086, tex:'Myk'},
+  {name:"Boulette d'Avesnes", milk:'Ku', origin:'Avesnes-sur-Helpe', lat:50.1236, lng:3.9294, tex:'Myk'},
+  // faste
+  {name:'Comté', milk:'Ku', origin:'Franche-Comté', lat:47.0000, lng:6.0000, tex:'Fast'},
+  {name:'Beaufort', milk:'Ku', origin:'Beaufort (Savoie)', lat:45.7181, lng:6.5750, tex:'Fast'},
+  {name:'Abondance', milk:'Ku', origin:'Abondance (Haute-Savoie)', lat:46.2803, lng:6.7217, tex:'Fast'},
+  {name:'Emmental de Savoie', milk:'Ku', origin:'Savoie', lat:45.5833, lng:6.3333, tex:'Fast'},
+  {name:'Tomme de Savoie', milk:'Ku', origin:'Savoie', lat:45.5833, lng:6.3333, tex:'Fast'},
+  {name:'Tome des Bauges', milk:'Ku', origin:'Massif des Bauges', lat:45.6500, lng:6.1500, tex:'Fast'},
+  {name:'Raclette de Savoie', milk:'Ku', origin:'Savoie', lat:45.5833, lng:6.3333, tex:'Fast'},
+  {name:'Cantal', milk:'Ku', origin:'Monts du Cantal (Auvergne)', lat:45.1094, lng:2.6761, tex:'Fast'},
+  {name:'Salers', milk:'Ku', origin:'Salers (Cantal)', lat:45.1372, lng:2.4939, tex:'Fast'},
+  {name:'Laguiole', milk:'Ku', origin:'Laguiole (Aubrac)', lat:44.6842, lng:2.8472, tex:'Fast'},
+  {name:'Morbier', milk:'Ku', origin:'Morbier (Jura)', lat:46.5369, lng:6.0167, tex:'Fast'},
+  {name:'Mimolette', milk:'Ku', origin:'Lille', lat:50.6292, lng:3.0573, tex:'Fast'},
+  {name:'Saint-Nectaire', milk:'Ku', origin:'Saint-Nectaire (Auvergne)', lat:45.5881, lng:2.9928, tex:'Fast'},
+  {name:'Ossau-Iraty', milk:'Sau', origin:'Pays basque / Béarn', lat:43.0000, lng:-1.0000, tex:'Fast'},
+  {name:'Tomme des Pyrénées', milk:'Ku', origin:'Pyrénées', lat:42.9300, lng:0.6500, tex:'Fast'},
+  {name:'Bethmale', milk:'Ku', origin:'Bethmale (Ariège)', lat:42.9333, lng:1.0833, tex:'Fast'},
+  {name:"P'tit Basque", milk:'Sau', origin:'Pays basque', lat:43.3500, lng:-1.2000, tex:'Fast'},
+  {name:'Abbaye de Belloc', milk:'Sau', origin:'Urt (Pays basque)', lat:43.4900, lng:-1.2900, tex:'Fast'},
+  {name:'Tomme de brebis', milk:'Sau', origin:'Pyrénées', lat:43.0000, lng:-0.6000, tex:'Fast'},
+  // blå
+  {name:'Roquefort', milk:'Sau', origin:'Roquefort-sur-Soulzon', lat:43.9767, lng:2.9889, tex:'Blå'},
+  {name:"Bleu d'Auvergne", milk:'Ku', origin:'Auvergne', lat:45.7000, lng:3.1000, tex:'Blå'},
+  {name:'Bleu des Causses', milk:'Ku', origin:'Causses (Aveyron)', lat:44.2500, lng:2.7000, tex:'Blå'},
+  {name:"Fourme d'Ambert", milk:'Ku', origin:'Ambert', lat:45.5494, lng:3.7417, tex:'Blå'},
+  {name:'Fourme de Montbrison', milk:'Ku', origin:'Montbrison', lat:45.6075, lng:4.0653, tex:'Blå'},
+  {name:'Bleu de Gex', milk:'Ku', origin:'Gex (Haut-Jura)', lat:46.3331, lng:6.0578, tex:'Blå'},
+  {name:'Bleu du Vercors-Sassenage', milk:'Ku', origin:'Sassenage (Vercors)', lat:45.2050, lng:5.6650, tex:'Blå'},
+  {name:'Bleu de Termignon', milk:'Ku', origin:'Termignon (Savoie)', lat:45.2775, lng:6.8169, tex:'Blå'},
+  {name:'Bleu de Bresse', milk:'Ku', origin:'Bresse', lat:46.3000, lng:5.2000, tex:'Blå'},
+  {name:'Bleu de Laqueuille', milk:'Ku', origin:'Laqueuille (Auvergne)', lat:45.6500, lng:2.7325, tex:'Blå'},
+  {name:'Saint-Agur', milk:'Ku', origin:'Beauzac (Auvergne)', lat:45.2597, lng:4.0989, tex:'Blå'},
+  {name:'Bleu des Basques', milk:'Sau', origin:'Pays basque', lat:43.3000, lng:-1.0000, tex:'Blå'},
+  // geit
+  {name:'Banon', milk:'Geit', origin:'Banon (Provence)', lat:44.0381, lng:5.6281, tex:'Myk'},
+  {name:'Crottin de Chavignol', milk:'Geit', origin:'Chavignol (Sancerre)', lat:47.3375, lng:2.7983, tex:'Myk'},
+  {name:'Sainte-Maure de Touraine', milk:'Geit', origin:'Sainte-Maure-de-Touraine', lat:47.1122, lng:0.6211, tex:'Myk'},
+  {name:'Valençay', milk:'Geit', origin:'Valençay', lat:47.1606, lng:1.5661, tex:'Myk'},
+  {name:'Selles-sur-Cher', milk:'Geit', origin:'Selles-sur-Cher', lat:47.2756, lng:1.5547, tex:'Myk'},
+  {name:'Pouligny-Saint-Pierre', milk:'Geit', origin:'Pouligny-Saint-Pierre', lat:46.6808, lng:1.0392, tex:'Myk'},
+  {name:'Chabichou du Poitou', milk:'Geit', origin:'Poitou', lat:46.6486, lng:-0.2478, tex:'Myk'},
+  {name:'Rocamadour', milk:'Geit', origin:'Rocamadour', lat:44.7994, lng:1.6178, tex:'Myk'},
+  {name:'Cabécou', milk:'Geit', origin:'Quercy', lat:44.2667, lng:1.6333, tex:'Myk'},
+  {name:'Picodon', milk:'Geit', origin:'Drôme / Ardèche', lat:44.7500, lng:4.8000, tex:'Myk'},
+  {name:'Pélardon', milk:'Geit', origin:'Cévennes', lat:44.1200, lng:3.9000, tex:'Myk'},
+  {name:'Chevrotin', milk:'Geit', origin:'Haute-Savoie', lat:45.8800, lng:6.3300, tex:'Myk'},
+  {name:'Charolais', milk:'Geit', origin:'Charolles (Bourgogne)', lat:46.4353, lng:4.2758, tex:'Myk'},
+  {name:'Mâconnais', milk:'Geit', origin:'Mâcon', lat:46.3069, lng:4.8286, tex:'Myk'},
+  {name:'Rigotte de Condrieu', milk:'Geit', origin:'Condrieu', lat:45.4633, lng:4.7683, tex:'Myk'},
+  {name:'Mothais sur feuille', milk:'Geit', origin:'La Mothe-Saint-Héray', lat:46.3536, lng:-0.1103, tex:'Myk'},
+  {name:'Bouton de Culotte', milk:'Geit', origin:'Mâconnais', lat:46.3069, lng:4.8286, tex:'Myk'},
+  {name:'Brousse du Rove', milk:'Geit', origin:'Le Rove (Provence)', lat:43.3692, lng:5.2506, tex:'Fersk'},
+  {name:'Tomme de Provence', milk:'Geit', origin:'Provence', lat:43.9000, lng:6.0000, tex:'Myk'},
+  {name:"Poivre d'âne", milk:'Geit', origin:'Provence', lat:43.9000, lng:5.8000, tex:'Myk'},
+  {name:'Bûche de chèvre', milk:'Geit', origin:'Poitou', lat:46.6486, lng:-0.2478, tex:'Myk'},
+  // sau og Korsika
+  {name:'Brocciu', milk:'Sau', origin:'Korsika', lat:42.1500, lng:9.0833, tex:'Fersk'},
+  {name:"Brin d'Amour", milk:'Sau', origin:'Korsika', lat:42.3000, lng:9.1500, tex:'Myk'},
+  {name:'Pérail', milk:'Sau', origin:'Larzac', lat:43.9800, lng:3.2000, tex:'Myk'},
+  // ferske og barnas favoritter
+  {name:'Fontainebleau', milk:'Ku', origin:'Fontainebleau', lat:48.4047, lng:2.7016, tex:'Fersk'},
+  {name:'Petit-Suisse', milk:'Ku', origin:'Gournay-en-Bray (Normandie)', lat:49.4822, lng:1.7253, tex:'Fersk'},
+  {name:'Boursin', milk:'Ku', origin:'Croisy-sur-Eure (Normandie)', lat:49.0167, lng:1.3833, tex:'Fersk'},
+  {name:'La vache qui rit', milk:'Ku', origin:'Lons-le-Saunier (Jura)', lat:46.6744, lng:5.5539},
+  {name:'Kiri', milk:'Ku', origin:'Lons-le-Saunier (Jura)', lat:46.6744, lng:5.5539, tex:'Fersk'},
+  {name:'Cancoillotte', milk:'Ku', origin:'Franche-Comté', lat:47.0000, lng:6.0000, tex:'Fersk'}
+];
 
 let SESS = null;                                   // {name, pin, avatar, is_kid}
 let BOARD = {members:[], cheeses:[], ratings:[]};  // delt tavle (cache i localStorage)
@@ -274,6 +421,7 @@ let TAB = 'beste';
 let pinBuf = '', pinMode = null, pinTarget = null; // 'login' | 'create'
 let newAva = AVATARS[0], newIsKid = true;
 let detailId = null, addPhoto = null, addMilk = MILKS[0], addTex = null;
+let addOriginPick = null, sugTimer = null;   // {origin, lat, lng} fra osteforslag
 
 try{ SESS = JSON.parse(localStorage.getItem(LS_SESS)) || null; }catch(e){}
 try{ BOARD = JSON.parse(localStorage.getItem(LS_BOARD)) || BOARD; }catch(e){}
@@ -483,13 +631,18 @@ function renderAll(){
   if(!SESS) return;
   $('meAva').textContent = SESS.avatar;
   $('meName').textContent = SESS.name;
-  renderWall();
+  if(TAB==='kart') renderKart();
+  else renderWall();
   if(detailId) renderDetail();
 }
 function setTab(t){
   TAB = t;
-  ['beste','nyeste','usmakt'].forEach(x=>$('tab-'+x).classList.toggle('on', x===t));
-  renderWall();
+  ['beste','nyeste','usmakt','kart'].forEach(x=>$('tab-'+x).classList.toggle('on', x===t));
+  const kart = t==='kart';
+  $('wall').classList.toggle('hidden', kart);
+  $('kart-wrap').classList.toggle('hidden', !kart);
+  if(kart) activateKart();
+  else renderWall();
 }
 function sortedCheeses(){
   let list = [...BOARD.cheeses];
@@ -540,6 +693,7 @@ function renderWall(){
         </div>
         <div class="meta">
           ${c.type ? `<span class="typechip">${esc(c.type)}</span>`:''}
+          ${c.origin ? `<span class="typechip">📍 ${esc(c.origin)}</span>`:''}
           <span class="typechip">av ${esc(c.added_by)}</span>
           ${!mine ? '<span class="badge-new">du har ikke smakt!</span>':''}
         </div>
@@ -547,6 +701,132 @@ function renderWall(){
       </div>`;
     wall.appendChild(card);
   });
+}
+
+/* =====================================================================
+   KARTET 🗺️ — hvor i Frankrike kommer ostene fra?
+   Leaflet lastes lat (først når fanen åpnes), så appen starter like
+   raskt og funker offline. Uten nett vises en enkel liste i stedet.
+   ===================================================================== */
+const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+const LEAFLET_JS  = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+const HOME = {lat:43.5578, lng:6.3903};   // Flayosc 🏠
+let kartMap = null, kartLayer = null, leafletPromise = null, kartFailed = false;
+
+function loadLeaflet(){
+  if(window.L) return Promise.resolve();
+  if(leafletPromise) return leafletPromise;
+  leafletPromise = new Promise((resolve, reject)=>{
+    const css = document.createElement('link');
+    css.rel = 'stylesheet'; css.href = LEAFLET_CSS;
+    document.head.appendChild(css);
+    const s = document.createElement('script');
+    s.src = LEAFLET_JS;
+    s.onload = resolve;
+    s.onerror = ()=>{ leafletPromise = null; s.remove(); reject(new Error('leaflet_failed')); };
+    document.head.appendChild(s);
+  });
+  return leafletPromise;
+}
+async function activateKart(){
+  if(kartMap){
+    renderKart();
+    setTimeout(()=>{ kartMap.invalidateSize(); fitKart(); }, 0);
+    return;
+  }
+  kartFailed = false;
+  $('kart').innerHTML = '<div class="kart-note">Laster kartet… 🗺️</div>';
+  renderKartMissing();
+  try{ await loadLeaflet(); }
+  catch(e){ kartFailed = true; renderKart(); return; }
+  if(TAB!=='kart') return;               // brukeren rakk å bytte fane
+  $('kart').innerHTML = '';
+  kartMap = L.map('kart', {minZoom:3}).setView([46.6, 2.4], 6);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom:19,
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(kartMap);
+  kartLayer = L.layerGroup().addTo(kartMap);
+  renderKart();
+  setTimeout(()=>{ kartMap.invalidateSize(); fitKart(); }, 0);
+}
+function hasCoords(c){
+  return c.lat!=null && c.lng!=null && isFinite(c.lat) && isFinite(c.lng);
+}
+/* oster med nøyaktig samme koordinater vifter vi litt utover, så alle kan trykkes */
+function kartPoints(){
+  const seen = {}, out = [];
+  BOARD.cheeses.forEach(c=>{
+    if(!hasCoords(c)) return;
+    const key = (+c.lat).toFixed(4)+','+(+c.lng).toFixed(4);
+    const i = seen[key]||0; seen[key] = i+1;
+    let lat = +c.lat, lng = +c.lng;
+    if(i>0){ const a = i*Math.PI/3; lat += 0.02*Math.sin(a); lng += 0.02*Math.cos(a); }
+    out.push({c, lat, lng});
+  });
+  return out;
+}
+function kartIcon(emoji, home){
+  return L.divIcon({
+    className:'',
+    html:`<div class="kart-pin${home?' kart-home':''}">${emoji}</div>`,
+    iconSize:[44,44], iconAnchor:[22,22], popupAnchor:[0,-24]
+  });
+}
+function fitKart(){
+  if(!kartMap) return;
+  const pts = kartPoints().map(p=>[p.lat, p.lng]);
+  if(!pts.length){ kartMap.setView([46.6, 2.4], 6); return; }
+  pts.push([HOME.lat, HOME.lng]);
+  kartMap.fitBounds(L.latLngBounds(pts), {padding:[46,46], maxZoom:9});
+  if(kartMap.getZoom()<6) kartMap.setView([46.6, 2.4], 6);   // aldri lenger unna enn hele Frankrike
+}
+function renderKart(){
+  renderKartMissing();
+  if(kartFailed){ renderKartFallback(); return; }
+  if(!kartMap) return;                    // Leaflet laster fortsatt
+  kartLayer.clearLayers();
+  L.marker([HOME.lat, HOME.lng], {icon:kartIcon('🏠', true), zIndexOffset:500})
+    .addTo(kartLayer)
+    .bindPopup('<div class="kart-pop"><b>Her bor vi! 🏠</b></div>');
+  kartPoints().forEach(({c, lat, lng})=>{
+    const avg = avgOf(c.id), n = ratingsFor(c.id).length;
+    const emo = avg!==null ? EMO[Math.round(avg)] : '🧀';
+    const avgTxt = n===0
+      ? 'Ingen har smakt ennå'
+      : `${emo} ${avg.toFixed(1)} · ${n} ${n===1?'dom':'dommer'}`;
+    const html = `<div class="kart-pop"><b>${esc(c.name)}</b>`
+      + (c.origin ? `<br><span class="mini">📍 ${esc(c.origin)}</span>` : '')
+      + `<br>${avgTxt}`
+      + `<button class="ghost small" onclick="openDetail('${c.id}')">Se osten →</button></div>`;
+    L.marker([lat, lng], {icon:kartIcon(emo, false)}).addTo(kartLayer).bindPopup(html);
+  });
+}
+function renderKartMissing(){
+  const el = $('kart-missing');
+  const missing = BOARD.cheeses.filter(c=>!hasCoords(c));
+  if(!missing.length){ el.innerHTML=''; el.classList.add('hidden'); return; }
+  el.classList.remove('hidden');
+  el.innerHTML = 'Uten plass på kartet: ' + missing.map(c=>
+    `<a href="#" onclick="openDetail('${c.id}');return false">${esc(c.name)}</a>`
+  ).join(', ');
+}
+function renderKartFallback(){
+  const groups = {};
+  BOARD.cheeses.forEach(c=>{
+    const k = c.origin || 'Ukjent sted';
+    (groups[k] = groups[k]||[]).push(c);
+  });
+  const keys = Object.keys(groups).sort((a,b)=>a.localeCompare(b,'no'));
+  $('kart').innerHTML = `<div class="kart-fb">
+    <p><b>Fikk ikke lastet kartet 🛜</b><br>
+    <span class="mini">Sjekk nettet og prøv igjen. Her er ostene etter sted så lenge:</span></p>`
+    + (keys.length
+      ? keys.map(k=>`<div class="kart-fb-group"><div class="kart-fb-place">📍 ${esc(k)}</div>`
+          + groups[k].map(c=>`<button class="ghost small" onclick="openDetail('${c.id}')">${esc(c.name)}</button>`).join('')
+          + '</div>').join('')
+      : '<p class="mini">Ingen oster ennå! Trykk «➕ Ny ost» 🥖</p>')
+    + '</div>';
 }
 
 /* ---------- rating (selve greia) ---------- */
@@ -585,7 +865,7 @@ function renderDetail(){
   const mine = myRating(c.id);
   const avg = avgOf(c.id), n = ratingsFor(c.id).length;
   $('dName').textContent = c.name;
-  $('dMeta').textContent = (c.type? c.type+' · ':'') + 'lagt til av ' + c.added_by;
+  $('dMeta').textContent = (c.type? c.type+' · ':'') + (c.origin? '📍 '+c.origin+' · ':'') + 'lagt til av ' + c.added_by;
   $('dPhotoWrap').innerHTML = c.photo
     ? `<img class="dphoto" src="${c.photo}" alt="">`
     : `<div class="dphoto-emoji">${esc((c.type||'🧀').split(' ')[0]||'🧀')}</div>`;
@@ -643,16 +923,18 @@ async function deleteCheese(){
    NY OST
    ===================================================================== */
 function openAdd(){
-  addPhoto=null; addMilk=MILKS[0]; addTex=null;
+  addPhoto=null; addMilk=MILKS[0]; addTex=null; addOriginPick=null;
   $('addName').value='';
+  $('addOrigin').value='';
   $('addPreview').classList.add('hidden');
   $('addFile').value='';
+  hideSuggestions(); renderOriginLine();
   const mr = $('milkRow'); mr.innerHTML='';
   MILKS.forEach(m=>{
     const b=document.createElement('button');
     b.className='chip'+(m===addMilk?' on':'');
     b.textContent=m[0]+' '+m[1];
-    b.onclick=()=>{ addMilk=m; [...mr.children].forEach((c,i)=>c.classList.toggle('on', MILKS[i]===m)); };
+    b.onclick=()=>selectMilk(m);
     mr.appendChild(b);
   });
   const tr = $('texRow'); tr.innerHTML='';
@@ -660,13 +942,89 @@ function openAdd(){
     const b=document.createElement('button');
     b.className='chip';
     b.textContent=t;
-    b.onclick=()=>{ addTex = addTex===t ? null : t; [...tr.children].forEach(c=>c.classList.toggle('on', c.textContent===addTex)); };
+    b.onclick=()=>selectTex(addTex===t ? null : t);
     tr.appendChild(b);
   });
   $('overlay-add').classList.remove('hidden');
   setTimeout(()=>$('addName').focus(), 100);
 }
-function closeAdd(){ $('overlay-add').classList.add('hidden'); }
+function closeAdd(){ hideSuggestions(); $('overlay-add').classList.add('hidden'); }
+function selectMilk(m){
+  addMilk = m;
+  [...$('milkRow').children].forEach((c,i)=>c.classList.toggle('on', MILKS[i]===m));
+}
+function selectTex(t){
+  addTex = t;
+  [...$('texRow').children].forEach(c=>c.classList.toggle('on', c.textContent===addTex));
+}
+
+/* ---------- osteforslag mens du skriver ---------- */
+function fold(s){
+  return String(s||'').toLowerCase().normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'').replace(/[-'’.]/g,' ').replace(/\s+/g,' ').trim();
+}
+function cheeseSuggest(q){
+  const f = fold(q);
+  if(f.length<2) return [];
+  const pre=[], sub=[];
+  for(const c of CHEESES_FR){
+    const fn = fold(c.name);
+    if(fn.startsWith(f)) pre.push(c);
+    else if(fn.includes(f)) sub.push(c);
+  }
+  return pre.concat(sub).slice(0,6);
+}
+function onAddNameInput(){
+  if(addOriginPick){ addOriginPick=null; renderOriginLine(); }
+  clearTimeout(sugTimer);
+  sugTimer = setTimeout(renderSuggestions, 300);
+}
+function renderSuggestions(){
+  const list = $('sugList');
+  const hits = cheeseSuggest($('addName').value);
+  list.innerHTML='';
+  if(!hits.length){ list.classList.add('hidden'); return; }
+  hits.forEach(c=>{
+    const b = document.createElement('button');
+    b.type='button'; b.className='sugitem';
+    b.innerHTML = `<span class="smilk">${MILK_EMO[c.milk]||'🧀'}</span>
+      <span class="sname">${esc(c.name)}</span><span class="sorig">${esc(c.origin)}</span>`;
+    // pointerdown + preventDefault: da rekker ikke input å miste fokus før valget
+    b.onpointerdown = ev=>{ ev.preventDefault(); pickSuggestion(c); };
+    list.appendChild(b);
+  });
+  list.classList.remove('hidden');
+}
+function hideSuggestions(){
+  clearTimeout(sugTimer);
+  const list = $('sugList');
+  list.classList.add('hidden'); list.innerHTML='';
+}
+function pickSuggestion(c){
+  $('addName').value = c.name;
+  const m = MILKS.find(x=>x[1]===c.milk);
+  if(m) selectMilk(m);
+  if(c.tex) selectTex(c.tex);
+  addOriginPick = {origin:c.origin, lat:c.lat, lng:c.lng};
+  hideSuggestions();
+  renderOriginLine();
+}
+function renderOriginLine(){
+  const line = $('originLine'), manual = $('originManual');
+  if(addOriginPick){
+    line.innerHTML = `<span class="otxt">📍 ${esc(addOriginPick.origin)}</span>
+      <button type="button" title="Fjern sted" onclick="clearPickedOrigin()">✕</button>`;
+    line.classList.remove('hidden');
+    manual.classList.add('hidden');
+  }else{
+    line.classList.add('hidden'); line.innerHTML='';
+    manual.classList.remove('hidden');
+  }
+}
+function clearPickedOrigin(){
+  addOriginPick = null;
+  renderOriginLine();
+}
 function onPhotoPicked(input){
   const f = input.files && input.files[0];
   if(!f) return;
@@ -688,9 +1046,13 @@ async function saveCheese(){
   const name = $('addName').value.trim();
   if(!name){ toast('Skriv hva osten heter 🧀'); return; }
   const type = (addMilk[1]==='Vet ikke' ? '🧀' : addMilk[0]+' '+addMilk[1]) + (addTex ? ' · '+addTex : '');
+  // sted: fra osteforslaget (med koordinater) eller fritekstfeltet (uten)
+  const origin = addOriginPick ? addOriginPick.origin : $('addOrigin').value.trim();
+  const lat = addOriginPick ? addOriginPick.lat : null;
+  const lng = addOriginPick ? addOriginPick.lng : null;
   $('addSave').disabled = true;
   try{
-    const res = await rpc('flayost_add_cheese', {p_name:SESS.name, p_pin:SESS.pin, p_cheese_name:name, p_type:type, p_photo:addPhoto});
+    const res = await rpc('flayost_add_cheese', {p_name:SESS.name, p_pin:SESS.pin, p_cheese_name:name, p_type:type, p_photo:addPhoto, p_origin:origin, p_lat:lat, p_lng:lng});
     if(!res || !res.ok) throw new Error(res && res.error);
     closeAdd();
     toast(`«${name}» er med i smakingen! 🎉`);
