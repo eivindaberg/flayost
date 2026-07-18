@@ -108,6 +108,19 @@
   .kart-legend .sw{display:flex; align-items:center; gap:5px;}
   .kart-legend i{width:16px; height:16px; border-radius:5px; display:inline-block; box-shadow:inset 0 0 0 1px rgba(0,0,0,.14);}
   #kart-missing{margin-top:10px; padding:0 6px;}
+
+  /* ---------- for deg ---------- */
+  .fordeg-h{font-size:19px; font-weight:900; margin:18px 4px 10px;}
+  .rec{background:var(--card); border-radius:18px; padding:13px 16px; box-shadow:0 8px 24px rgba(80,50,10,.13); margin-bottom:10px; display:flex; gap:12px; align-items:center;}
+  .rec .big{font-size:34px; line-height:1;}
+  .rec .rname{font-weight:900; font-size:17px;}
+  .rec .why{font-size:13px; color:var(--muted);}
+  .rec .pred{text-align:center; font-weight:900; white-space:nowrap;}
+  .rec .pred .p-emo{font-size:26px; display:block; line-height:1.1;}
+  .unlock{background:var(--card); border-radius:20px; padding:26px 20px; text-align:center; box-shadow:0 8px 24px rgba(80,50,10,.13);}
+  .unlock h2{margin:10px 0 6px;}
+  .unlock .bar{height:14px; background:var(--soft); border-radius:999px; overflow:hidden; margin:16px auto 8px; max-width:340px;}
+  .unlock .bar i{display:block; height:100%; background:linear-gradient(90deg,#ecc27c,var(--ochre)); border-radius:999px;}
   #kart-missing a{color:var(--lav); font-weight:700; text-decoration:none;}
   .kart-fb{padding:20px; height:100%; overflow-y:auto;}
   .kart-fb p{margin:0 0 14px;}
@@ -228,6 +241,7 @@
       <button class="tab" id="tab-nyeste" onclick="setTab('nyeste')">🆕 Nyeste</button>
       <button class="tab" id="tab-usmakt" onclick="setTab('usmakt')">👅 Ikke smakt</button>
       <button class="tab" id="tab-kart" onclick="setTab('kart')">🗺️ Kart</button>
+      <button class="tab" id="tab-fordeg" onclick="setTab('fordeg')">✨ For deg</button>
     </div>
     <div class="wall" id="wall"></div>
     <div id="kart-wrap" class="hidden">
@@ -243,6 +257,7 @@
       </div>
       <p class="mini hidden" id="kart-missing"></p>
     </div>
+    <div id="fordeg-wrap" class="hidden"><div id="fordeg"></div></div>
     <button class="fab" onclick="openAdd()">➕ Ny ost</button>
   </div>
 </div>
@@ -644,16 +659,18 @@ function renderAll(){
   $('meAva').textContent = SESS.avatar;
   $('meName').textContent = SESS.name;
   if(TAB==='kart') renderKart();
+  else if(TAB==='fordeg') renderForDeg();
   else renderWall();
   if(detailId) renderDetail();
 }
 function setTab(t){
   TAB = t;
   ['beste','nyeste','usmakt','kart'].forEach(x=>$('tab-'+x).classList.toggle('on', x===t));
-  const kart = t==='kart';
-  $('wall').classList.toggle('hidden', kart);
-  $('kart-wrap').classList.toggle('hidden', !kart);
-  if(kart) activateKart();
+  $('wall').classList.toggle('hidden', t==='kart' || t==='fordeg');
+  $('kart-wrap').classList.toggle('hidden', t!=='kart');
+  $('fordeg-wrap').classList.toggle('hidden', t!=='fordeg');
+  if(t==='kart') activateKart();
+  else if(t==='fordeg') renderForDeg();
   else renderWall();
 }
 function sortedCheeses(){
@@ -929,6 +946,124 @@ async function rate(cheeseId, score, ev){
     queuePending(cheeseId, score, note);
     toast('Fikk ikke lagret på nett 😬 – prøver igjen automatisk');
   }
+}
+
+/* =====================================================================
+   ✨ FOR DEG — personlige osteanbefalinger.
+   Låses opp når du har dømt minst 5 oster av minst 2 melketyper, så
+   profilen faktisk sier noe. Smaksprofilen bygges av dine egne dommer
+   (melketype, konsistens og område); kandidatene kommer fra tavla og
+   fra det innebygde datasettet med 91 franske oster.
+   ===================================================================== */
+const REC_MIN_RATINGS = 5, REC_MIN_MILKS = 2;
+const TEX_WORD = {Myk:'myke', Fast:'faste', Blå:'blå', Fersk:'ferske'};
+let REC_BUYS = [];
+
+function parseType(t){
+  t = t || '';
+  const milk = t.includes('Ku') ? 'Ku' : t.includes('Geit') ? 'Geit' : t.includes('Sau') ? 'Sau' : null;
+  const m = t.match(/·\s*(Myk|Fast|Blå|Fersk)/);
+  return {milk, tex: m ? m[1] : null};
+}
+function tasteProfile(){
+  const mine = BOARD.ratings.filter(r=>r.member===SESS.name)
+    .map(r=>({r, c: BOARD.cheeses.find(c=>c.id===r.cheese_id)})).filter(x=>x.c);
+  const prof = {n:mine.length, overall:3, milk:{}, tex:{}, favSpots:[], milksTasted:new Set()};
+  if(!mine.length) return prof;
+  prof.overall = mine.reduce((s,x)=>s+x.r.score,0)/mine.length;
+  const accM = {}, accT = {};
+  mine.forEach(({r,c})=>{
+    const {milk, tex} = parseType(c.type);
+    if(milk){ (accM[milk]=accM[milk]||[]).push(r.score); prof.milksTasted.add(milk); }
+    if(tex){ (accT[tex]=accT[tex]||[]).push(r.score); }
+    if(r.score>=4 && hasCoords(c)) prof.favSpots.push({lat:+c.lat, lng:+c.lng, name:c.name, score:r.score});
+  });
+  for(const k in accM) prof.milk[k] = accM[k].reduce((a,b)=>a+b,0)/accM[k].length;
+  for(const k in accT) prof.tex[k] = accT[k].reduce((a,b)=>a+b,0)/accT[k].length;
+  return prof;
+}
+function kmDist(la1, ln1, la2, ln2){
+  const R=6371, p=Math.PI/180;
+  const h = Math.sin((la2-la1)*p/2)**2 + Math.cos(la1*p)*Math.cos(la2*p)*Math.sin((ln2-ln1)*p/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h));
+}
+function predictFor(prof, milk, tex, lat, lng){
+  let s = prof.overall;
+  const why = [];
+  if(milk && prof.milk[milk]!=null){
+    const d = prof.milk[milk]-prof.overall; s += 0.7*d;
+    if(d>0.25) why.push(`du gir ${MILK_EMO[milk]||''}-oster ${prof.milk[milk].toFixed(1)} i snitt`);
+  }
+  if(tex && prof.tex[tex]!=null){
+    const d = prof.tex[tex]-prof.overall; s += 0.5*d;
+    if(d>0.25) why.push(`du liker ${TEX_WORD[tex]||tex} oster`);
+  }
+  if(lat!=null && lng!=null){
+    const near = prof.favSpots.find(f=>kmDist(f.lat, f.lng, +lat, +lng)<150);
+    if(near){ s += 0.3; why.push(`den er fra samme område som ${near.name} ${EMO[near.score]}`); }
+  }
+  return {score: Math.max(1, Math.min(5, s)), why};
+}
+function recRow(big, name, sub, why, pred, action){
+  return `<div class="rec">
+    <span class="big">${big}</span>
+    <div class="grow">
+      <div class="rname">${name}</div>
+      ${sub ? `<div class="why">${sub}</div>` : ''}
+      <div class="why">✨ ${why}</div>
+    </div>
+    <div class="pred"><span class="p-emo">${EMO[Math.round(pred)]}</span>${pred.toFixed(1)}<br><span class="why">for deg</span></div>
+    ${action||''}
+  </div>`;
+}
+function renderForDeg(){
+  const wrap = $('fordeg');
+  if(!SESS) return;
+  const prof = tasteProfile();
+  const unlocked = prof.n>=REC_MIN_RATINGS && prof.milksTasted.size>=REC_MIN_MILKS;
+  if(!unlocked){
+    const milks = ['Ku','Geit','Sau'].map(m=>`<span style="opacity:${prof.milksTasted.has(m)?1:.25}">${MILK_EMO[m]}</span>`).join(' ');
+    wrap.innerHTML = `<div class="unlock">
+      <div style="font-size:44px">🔮🧀</div>
+      <h2>Snart vet jeg hva du liker!</h2>
+      <p class="mini">Døm minst ${REC_MIN_RATINGS} oster av minst ${REC_MIN_MILKS} melketyper, så får du personlige anbefalinger.</p>
+      <div class="bar"><i style="width:${Math.min(100, prof.n/REC_MIN_RATINGS*100)}%"></i></div>
+      <b>${prof.n}/${REC_MIN_RATINGS} oster dømt</b> · melketyper: <span style="font-size:20px">${milks}</span> (${prof.milksTasted.size}/${REC_MIN_MILKS})
+      <p class="mini" style="margin-top:12px">Tips: «👅 Ikke smakt»-fanen viser hva du mangler!</p>
+    </div>`;
+    return;
+  }
+  const untasted = BOARD.cheeses.filter(c=>!myRating(c.id)).map(c=>{
+    const {milk, tex} = parseType(c.type);
+    return {c, p: predictFor(prof, milk, tex, c.lat, c.lng)};
+  }).sort((a,b)=>b.p.score-a.p.score).slice(0,4);
+  const onBoard = new Set(BOARD.cheeses.map(c=>fold(c.name)));
+  REC_BUYS = CHEESES_FR.filter(x=>!onBoard.has(fold(x.name)))
+    .map(x=>({x, p: predictFor(prof, x.milk, x.tex, x.lat, x.lng)}))
+    .sort((a,b)=>b.p.score-a.p.score).slice(0,5);
+  let html = '';
+  if(untasted.length){
+    html += `<div class="fordeg-h">👅 Smak disse fra tavla</div>` + untasted.map(({c,p})=>{
+      const avg = avgOf(c.id);
+      return `<div onclick="openDetail('${c.id}')" style="cursor:pointer">` + recRow(
+        esc((c.type||'🧀').split(' ')[0]||'🧀'), esc(c.name),
+        (c.origin? '📍 '+esc(c.origin)+' · ':'') + (avg!==null? `familien: ${EMO[Math.round(avg)]} ${avg.toFixed(1)}` : 'ingen har dømt ennå'),
+        esc(p.why[0]||'midt i smaken din'), p.score) + '</div>';
+    }).join('');
+  }
+  html += `<div class="fordeg-h">🛒 Kjøp neste gang</div>` + REC_BUYS.map(({x,p},i)=>recRow(
+    MILK_EMO[x.milk]||'🧀', esc(x.name),
+    '📍 '+esc(x.origin)+(x.tex? ' · '+x.tex:''),
+    esc(p.why[0]||'midt i smaken din'), p.score,
+    `<button class="ghost small" onclick="recAdd(${i})">➕ Sett på tavla</button>`)).join('');
+  html += `<p class="mini center" style="margin-top:14px">Basert på dine ${prof.n} dommer. Jo mer du smaker, jo bedre treffer jeg! 🔮</p>`;
+  wrap.innerHTML = html;
+}
+function recAdd(i){
+  const rec = REC_BUYS[i];
+  if(!rec) return;
+  openAdd();
+  pickSuggestion(rec.x);
 }
 
 /* =====================================================================
