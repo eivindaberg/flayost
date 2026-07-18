@@ -104,6 +104,9 @@
   .kart-pop{font-family:inherit; font-size:15px; line-height:1.55; color:var(--ink);}
   .kart-pop b{font-size:16px;}
   .kart-pop button{margin-top:7px; display:block;}
+  .kart-legend{display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; margin-top:10px; padding:0 6px; font-size:13px; color:var(--muted); font-weight:600;}
+  .kart-legend .sw{display:flex; align-items:center; gap:5px;}
+  .kart-legend i{width:16px; height:16px; border-radius:5px; display:inline-block; box-shadow:inset 0 0 0 1px rgba(0,0,0,.14);}
   #kart-missing{margin-top:10px; padding:0 6px;}
   #kart-missing a{color:var(--lav); font-weight:700; text-decoration:none;}
   .kart-fb{padding:20px; height:100%; overflow-y:auto;}
@@ -229,6 +232,15 @@
     <div class="wall" id="wall"></div>
     <div id="kart-wrap" class="hidden">
       <div id="kart"></div>
+      <div class="kart-legend">
+        <span>Regionfarge = snittdom:</span>
+        <span class="sw"><i style="background:#f7e6c3"></i>🤢</span>
+        <span class="sw"><i style="background:#ecc27c"></i>😕</span>
+        <span class="sw"><i style="background:#d99b3c"></i>🙂</span>
+        <span class="sw"><i style="background:#b26f14"></i>😋</span>
+        <span class="sw"><i style="background:#7f4a06"></i>🤩</span>
+        <span class="sw"><i style="background:#b7a88e; opacity:.3"></i>ingen dommer ennå</span>
+      </div>
       <p class="mini hidden" id="kart-missing"></p>
     </div>
     <button class="fab" onclick="openAdd()">➕ Ny ost</button>
@@ -729,6 +741,7 @@ function loadLeaflet(){
   return leafletPromise;
 }
 async function activateKart(){
+  loadRegions().then(()=>{ if(TAB==='kart') renderRegions(); });
   if(kartMap){
     renderKart();
     setTimeout(()=>{ kartMap.invalidateSize(); fitKart(); }, 0);
@@ -773,6 +786,70 @@ function kartIcon(emoji, home){
     iconSize:[44,44], iconAnchor:[22,22], popupAnchor:[0,-24]
   });
 }
+/* ---------- regionvarmekart 🔥 — farge etter hvor godt ostene derfra dømmes ----------
+   Franske regiongrenser hentes lat (én gang) fra france-geojson; hver ost med
+   koordinater plasseres i sin region (punkt-i-polygon), og regionen farges etter
+   snittdommen. Gull-rampen er sekvensiell med validert monoton lyshet; emojiene
+   i tegnforklaringen bærer skalaen også for fargeblinde. Feiler stille uten nett. */
+const REGIONS_URL = 'https://cdn.jsdelivr.net/gh/gregoiredavid/france-geojson@master/regions-version-simplifiee.geojson';
+const HEAT = ['#f7e6c3','#ecc27c','#d99b3c','#b26f14','#7f4a06'];   // indeks = rundet snitt 1–5
+let regionsGeo = null, regionsLayer = null, regionsPromise = null;
+
+function loadRegions(){
+  if(regionsGeo) return Promise.resolve();
+  if(regionsPromise) return regionsPromise;
+  regionsPromise = fetch(REGIONS_URL).then(r=>r.json()).then(g=>{ regionsGeo = g; })
+    .catch(()=>{ regionsPromise = null; });
+  return regionsPromise;
+}
+function pip(lat, lng, ring){
+  let inside = false;
+  for(let i=0, j=ring.length-1; i<ring.length; j=i++){
+    const xi=ring[i][0], yi=ring[i][1], xj=ring[j][0], yj=ring[j][1];
+    if(((yi>lat)!==(yj>lat)) && (lng < (xj-xi)*(lat-yi)/(yj-yi)+xi)) inside = !inside;
+  }
+  return inside;
+}
+function inRegion(lat, lng, f){
+  const g = f.geometry;
+  const polys = g.type==='Polygon' ? [g.coordinates] : g.coordinates;
+  return polys.some(rings => pip(lat,lng,rings[0]) && !rings.slice(1).some(h=>pip(lat,lng,h)));
+}
+function regionStats(f){
+  const oster = BOARD.cheeses.filter(c=>hasCoords(c) && inRegion(+c.lat, +c.lng, f));
+  let sum=0, n=0, best=null, bestAvg=null;
+  oster.forEach(c=>{
+    ratingsFor(c.id).forEach(r=>{ sum+=r.score; n++; });
+    const a = avgOf(c.id);
+    if(a!==null && (bestAvg===null || a>bestAvg)){ bestAvg=a; best=c; }
+  });
+  return {oster, n, avg: n? sum/n : null, best, bestAvg};
+}
+function renderRegions(){
+  if(!kartMap || !regionsGeo || kartFailed) return;
+  if(regionsLayer){ regionsLayer.remove(); regionsLayer = null; }
+  regionsLayer = L.geoJSON(regionsGeo, {
+    style: f => {
+      const st = regionStats(f);
+      return st.avg===null
+        ? {color:'#b7a88e', weight:1, fillColor:'#b7a88e', fillOpacity:.06, dashArray:'3 4'}
+        : {color:'#8a6a3a', weight:1.2, fillColor:HEAT[Math.min(4, Math.max(0, Math.round(st.avg)-1))], fillOpacity:.5};
+    },
+    onEachFeature: (f, layer) => {
+      layer.bindPopup(()=>{
+        const st = regionStats(f);
+        const navn = esc(f.properties.nom);
+        if(st.avg===null)
+          return `<div class="kart-pop kart-rpop"><b>${navn}</b><br>Ingen oster herfra ennå – på tide med en handletur? 🧀</div>`;
+        return `<div class="kart-pop kart-rpop"><b>${navn}</b><br>`
+          + `${EMO[Math.round(st.avg)]} ${st.avg.toFixed(1)} i snitt · ${st.oster.length} ${st.oster.length===1?'ost':'oster'} · ${st.n} ${st.n===1?'dom':'dommer'}<br>`
+          + `Best: ${esc(st.best.name)} ${st.bestAvg!==null ? EMO[Math.round(st.bestAvg)]+' '+st.bestAvg.toFixed(1) : ''}</div>`;
+      });
+    }
+  }).addTo(kartMap);
+  regionsLayer.bringToBack();
+}
+
 function fitKart(){
   if(!kartMap) return;
   const pts = kartPoints().map(p=>[p.lat, p.lng]);
@@ -804,6 +881,7 @@ function renderKart(){
       + `<button class="ghost small" onclick="openDetail('${c.id}')">Se osten →</button></div>`;
     L.marker([lat, lng], {icon:kartIcon(emo, false)}).addTo(kartLayer).bindPopup(html);
   });
+  renderRegions();
 }
 function renderKartMissing(){
   const el = $('kart-missing');
