@@ -34,5 +34,7 @@ HOW IT'S PUBLISHED
 ------------------
 GitHub Pages: repo eivindaberg/flayost, CNAME flayost.eivindberg.no
 (DNS: flayost CNAME -> eivindaberg.github.io, same setup as mattespill).
+Also on Vercel: https://flayost.vercel.app (project linked to the GitHub
+repo, so every push deploys to both hosts automatically).
 
 Safe to open: it's a single plain .html file, no executables.

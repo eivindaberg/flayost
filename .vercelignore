@@ -1,0 +1,6 @@
+supabase/
+node_modules/
+.claude/
+README.txt
+.gitignore
+CNAME
