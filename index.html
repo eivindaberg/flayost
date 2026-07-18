@@ -95,6 +95,22 @@
   .emorow button.on{background:var(--ochre-soft); box-shadow:inset 0 0 0 3px var(--ochre); transform:scale(1.06);}
   .emorow.big button{font-size:40px; padding:13px 0 10px;}
   .empty{background:rgba(255,253,247,.75); border-radius:20px; padding:40px 20px; text-align:center; font-size:19px; font-weight:700; color:var(--muted);}
+
+  /* ---------- kart ---------- */
+  #kart{height:62vh; min-height:340px; border-radius:20px; overflow:hidden; background:var(--card); box-shadow:0 8px 24px rgba(80,50,10,.13); position:relative; z-index:0;}
+  .kart-pin{width:44px; height:44px; border-radius:50%; background:#fff; border:2px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:24px; line-height:1; box-shadow:0 8px 24px rgba(80,50,10,.13);}
+  .kart-pin.kart-home{background:var(--ochre-soft); border-color:var(--ochre);}
+  .kart-note{display:flex; align-items:center; justify-content:center; height:100%; font-weight:700; color:var(--muted); font-size:17px;}
+  .kart-pop{font-family:inherit; font-size:15px; line-height:1.55; color:var(--ink);}
+  .kart-pop b{font-size:16px;}
+  .kart-pop button{margin-top:7px; display:block;}
+  #kart-missing{margin-top:10px; padding:0 6px;}
+  #kart-missing a{color:var(--lav); font-weight:700; text-decoration:none;}
+  .kart-fb{padding:20px; height:100%; overflow-y:auto;}
+  .kart-fb p{margin:0 0 14px;}
+  .kart-fb-group{margin-bottom:14px;}
+  .kart-fb-place{font-weight:800; margin-bottom:6px;}
+  .kart-fb-group .ghost{margin:0 6px 6px 0;}
   .fab{position:fixed; right:22px; bottom:22px; background:var(--ochre); color:#fff; font-size:19px; font-weight:900; border-radius:999px; padding:17px 26px; box-shadow:0 12px 30px rgba(120,70,0,.35); z-index:40;}
 
   /* ---------- overlays ---------- */
@@ -195,8 +211,13 @@
       <button class="tab on" id="tab-beste" onclick="setTab('beste')">🏆 Beste</button>
       <button class="tab" id="tab-nyeste" onclick="setTab('nyeste')">🆕 Nyeste</button>
       <button class="tab" id="tab-usmakt" onclick="setTab('usmakt')">👅 Ikke smakt</button>
+      <button class="tab" id="tab-kart" onclick="setTab('kart')">🗺️ Kart</button>
     </div>
     <div class="wall" id="wall"></div>
+    <div id="kart-wrap" class="hidden">
+      <div id="kart"></div>
+      <p class="mini hidden" id="kart-missing"></p>
+    </div>
     <button class="fab" onclick="openAdd()">➕ Ny ost</button>
   </div>
 </div>
@@ -483,13 +504,18 @@ function renderAll(){
   if(!SESS) return;
   $('meAva').textContent = SESS.avatar;
   $('meName').textContent = SESS.name;
-  renderWall();
+  if(TAB==='kart') renderKart();
+  else renderWall();
   if(detailId) renderDetail();
 }
 function setTab(t){
   TAB = t;
-  ['beste','nyeste','usmakt'].forEach(x=>$('tab-'+x).classList.toggle('on', x===t));
-  renderWall();
+  ['beste','nyeste','usmakt','kart'].forEach(x=>$('tab-'+x).classList.toggle('on', x===t));
+  const kart = t==='kart';
+  $('wall').classList.toggle('hidden', kart);
+  $('kart-wrap').classList.toggle('hidden', !kart);
+  if(kart) activateKart();
+  else renderWall();
 }
 function sortedCheeses(){
   let list = [...BOARD.cheeses];
@@ -547,6 +573,132 @@ function renderWall(){
       </div>`;
     wall.appendChild(card);
   });
+}
+
+/* =====================================================================
+   KARTET 🗺️ — hvor i Frankrike kommer ostene fra?
+   Leaflet lastes lat (først når fanen åpnes), så appen starter like
+   raskt og funker offline. Uten nett vises en enkel liste i stedet.
+   ===================================================================== */
+const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+const LEAFLET_JS  = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+const HOME = {lat:43.5578, lng:6.3903};   // Flayosc 🏠
+let kartMap = null, kartLayer = null, leafletPromise = null, kartFailed = false;
+
+function loadLeaflet(){
+  if(window.L) return Promise.resolve();
+  if(leafletPromise) return leafletPromise;
+  leafletPromise = new Promise((resolve, reject)=>{
+    const css = document.createElement('link');
+    css.rel = 'stylesheet'; css.href = LEAFLET_CSS;
+    document.head.appendChild(css);
+    const s = document.createElement('script');
+    s.src = LEAFLET_JS;
+    s.onload = resolve;
+    s.onerror = ()=>{ leafletPromise = null; s.remove(); reject(new Error('leaflet_failed')); };
+    document.head.appendChild(s);
+  });
+  return leafletPromise;
+}
+async function activateKart(){
+  if(kartMap){
+    renderKart();
+    setTimeout(()=>{ kartMap.invalidateSize(); fitKart(); }, 0);
+    return;
+  }
+  kartFailed = false;
+  $('kart').innerHTML = '<div class="kart-note">Laster kartet… 🗺️</div>';
+  renderKartMissing();
+  try{ await loadLeaflet(); }
+  catch(e){ kartFailed = true; renderKart(); return; }
+  if(TAB!=='kart') return;               // brukeren rakk å bytte fane
+  $('kart').innerHTML = '';
+  kartMap = L.map('kart', {minZoom:3}).setView([46.6, 2.4], 6);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom:19,
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(kartMap);
+  kartLayer = L.layerGroup().addTo(kartMap);
+  renderKart();
+  setTimeout(()=>{ kartMap.invalidateSize(); fitKart(); }, 0);
+}
+function hasCoords(c){
+  return c.lat!=null && c.lng!=null && isFinite(c.lat) && isFinite(c.lng);
+}
+/* oster med nøyaktig samme koordinater vifter vi litt utover, så alle kan trykkes */
+function kartPoints(){
+  const seen = {}, out = [];
+  BOARD.cheeses.forEach(c=>{
+    if(!hasCoords(c)) return;
+    const key = (+c.lat).toFixed(4)+','+(+c.lng).toFixed(4);
+    const i = seen[key]||0; seen[key] = i+1;
+    let lat = +c.lat, lng = +c.lng;
+    if(i>0){ const a = i*Math.PI/3; lat += 0.02*Math.sin(a); lng += 0.02*Math.cos(a); }
+    out.push({c, lat, lng});
+  });
+  return out;
+}
+function kartIcon(emoji, home){
+  return L.divIcon({
+    className:'',
+    html:`<div class="kart-pin${home?' kart-home':''}">${emoji}</div>`,
+    iconSize:[44,44], iconAnchor:[22,22], popupAnchor:[0,-24]
+  });
+}
+function fitKart(){
+  if(!kartMap) return;
+  const pts = kartPoints().map(p=>[p.lat, p.lng]);
+  if(!pts.length){ kartMap.setView([46.6, 2.4], 6); return; }
+  pts.push([HOME.lat, HOME.lng]);
+  kartMap.fitBounds(L.latLngBounds(pts), {padding:[46,46], maxZoom:9});
+  if(kartMap.getZoom()<6) kartMap.setView([46.6, 2.4], 6);   // aldri lenger unna enn hele Frankrike
+}
+function renderKart(){
+  renderKartMissing();
+  if(kartFailed){ renderKartFallback(); return; }
+  if(!kartMap) return;                    // Leaflet laster fortsatt
+  kartLayer.clearLayers();
+  L.marker([HOME.lat, HOME.lng], {icon:kartIcon('🏠', true), zIndexOffset:500})
+    .addTo(kartLayer)
+    .bindPopup('<div class="kart-pop"><b>Her bor vi! 🏠</b></div>');
+  kartPoints().forEach(({c, lat, lng})=>{
+    const avg = avgOf(c.id), n = ratingsFor(c.id).length;
+    const emo = avg!==null ? EMO[Math.round(avg)] : '🧀';
+    const avgTxt = n===0
+      ? 'Ingen har smakt ennå'
+      : `${emo} ${avg.toFixed(1)} · ${n} ${n===1?'dom':'dommer'}`;
+    const html = `<div class="kart-pop"><b>${esc(c.name)}</b>`
+      + (c.origin ? `<br><span class="mini">📍 ${esc(c.origin)}</span>` : '')
+      + `<br>${avgTxt}`
+      + `<button class="ghost small" onclick="openDetail('${c.id}')">Se osten →</button></div>`;
+    L.marker([lat, lng], {icon:kartIcon(emo, false)}).addTo(kartLayer).bindPopup(html);
+  });
+}
+function renderKartMissing(){
+  const el = $('kart-missing');
+  const missing = BOARD.cheeses.filter(c=>!hasCoords(c));
+  if(!missing.length){ el.innerHTML=''; el.classList.add('hidden'); return; }
+  el.classList.remove('hidden');
+  el.innerHTML = 'Uten plass på kartet: ' + missing.map(c=>
+    `<a href="#" onclick="openDetail('${c.id}');return false">${esc(c.name)}</a>`
+  ).join(', ');
+}
+function renderKartFallback(){
+  const groups = {};
+  BOARD.cheeses.forEach(c=>{
+    const k = c.origin || 'Ukjent sted';
+    (groups[k] = groups[k]||[]).push(c);
+  });
+  const keys = Object.keys(groups).sort((a,b)=>a.localeCompare(b,'no'));
+  $('kart').innerHTML = `<div class="kart-fb">
+    <p><b>Fikk ikke lastet kartet 🛜</b><br>
+    <span class="mini">Sjekk nettet og prøv igjen. Her er ostene etter sted så lenge:</span></p>`
+    + (keys.length
+      ? keys.map(k=>`<div class="kart-fb-group"><div class="kart-fb-place">📍 ${esc(k)}</div>`
+          + groups[k].map(c=>`<button class="ghost small" onclick="openDetail('${c.id}')">${esc(c.name)}</button>`).join('')
+          + '</div>').join('')
+      : '<p class="mini">Ingen oster ennå! Trykk «➕ Ny ost» 🥖</p>')
+    + '</div>';
 }
 
 /* ---------- rating (selve greia) ---------- */
