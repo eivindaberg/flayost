@@ -89,8 +89,11 @@
   .cheese .name{font-size:19px; font-weight:900; flex:1;}
   .cheese .avg{font-size:17px; font-weight:900; white-space:nowrap;}
   .cheese .avg small{color:var(--muted); font-weight:600;}
-  .cheese .meta{display:flex; gap:6px; align-items:center; margin:4px 0 10px; flex-wrap:wrap;}
-  .typechip{background:var(--soft); border-radius:999px; padding:3px 10px; font-size:12.5px; font-weight:700; color:var(--muted);}
+  /* én linje: lange regionnavn kuttes med … i stedet for å brekke kortet */
+  .cheese .meta{display:flex; gap:6px; align-items:center; margin:4px 0 10px; flex-wrap:nowrap; overflow:hidden; min-height:25px;}
+  .typechip{background:var(--soft); border-radius:999px; padding:3px 10px; font-size:12.5px; font-weight:700; color:var(--muted); white-space:nowrap; flex-shrink:0;}
+  .typechip.ochip{flex-shrink:1; min-width:0; overflow:hidden; text-overflow:ellipsis;}
+  .badge-new{white-space:nowrap; flex-shrink:0;}
   .badge-new{background:var(--lav); color:#fff; border-radius:999px; padding:3px 10px; font-size:12.5px; font-weight:800;}
   .emorow{display:flex; gap:6px; align-items:center;}
   .emorow .slab{font-size:16px; padding:0 3px;}
@@ -1072,10 +1075,9 @@ function renderWall(){
         </div>
         <div class="meta">
           ${c.type ? `<span class="typechip">${esc(c.type)}</span>`:''}
-          ${c.origin ? `<span class="typechip">📍 ${esc(c.origin)}</span>`:''}
+          ${c.origin ? `<span class="typechip ochip" title="${esc(c.origin)}">📍 ${esc(c.origin)}</span>`:''}
           ${as!==null ? `<span class="typechip">💨 ${as.toFixed(1)}</span>`:''}
-          <span class="typechip">av ${esc(c.added_by)}</span>
-          ${!mine ? '<span class="badge-new">du har ikke smakt!</span>':''}
+          ${!mine ? '<span class="badge-new">ikke smakt!</span>':''}
         </div>
         <div class="emorow" title="Din dom — hvor god smaker den?"><span class="slab">👅</span>${emos}</div>
         <div class="stinkrow" title="Stinkometeret — hvor mye lukter den?"><span class="slab">💨</span>${stinks}</div>
