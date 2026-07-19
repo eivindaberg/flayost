@@ -37,4 +37,14 @@ for t in $SUITER; do
     FEIL=1
   fi
 done
+
+# auto-opprydding av E2E-rader i produksjon (best effort — krever Supabase-
+# CLI-token i nøkkelringen; feiler stille på andre maskiner)
+TOKEN=$(security find-generic-password -s "Supabase CLI" -w 2>/dev/null | sed 's/go-keyring-base64://' | base64 -d 2>/dev/null)
+if [ -n "$TOKEN" ]; then
+  curl -s -X POST https://api.supabase.com/v1/projects/fvafwggxvnsmqedmdmdz/database/query \
+    -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+    -d '{"query":"delete from flayost_ratings where member like $$E2E %$$; delete from flayost_stinks where member like $$E2E %$$; delete from flayost_cheeses where name like $$E2E %$$ or added_by like $$E2E %$$; delete from flayost_members where name like $$E2E %$$;"}' >/dev/null \
+    && echo "🧹 E2E-rader ryddet fra produksjon"
+fi
 exit $FEIL

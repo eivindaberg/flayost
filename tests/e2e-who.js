@@ -31,7 +31,7 @@ function check(name, ok, extra) {
 
   // tapp et medlem → PIN-skjermen med riktig navn
   if (names.length) {
-    await page.click('#memberButtons .member-btn:first-child');
+    await page.click('#memberButtons .member-btn >> nth=0');
     const title = await page.textContent('#pinTitle');
     check('tapp medlem → PIN-skjerm med navn', title.includes('Skriv koden din'), title);
     // feil kode skal gi feilmelding, ikke opprette noe

@@ -188,6 +188,8 @@
   .badge .mini{font-size:11.5px; display:block; margin-top:2px;}
   .badge.off{opacity:.5; filter:grayscale(1); box-shadow:none; background:rgba(255,253,247,.6);}
   .badge.secret{border:2px dashed var(--line);}
+  .badge.neg{background:#f9edea; box-shadow:0 8px 24px rgba(140,60,40,.10);}
+  .badge.neg.off{background:rgba(255,253,247,.6);}
   .stamp{background:rgba(255,253,247,.6); border:3px dashed var(--line); border-radius:14px; padding:12px 10px; text-align:center; color:var(--muted);}
   .stamp b{display:block; font-size:13.5px;}
   .stamp .semo{font-size:30px; display:block; margin-bottom:2px;}
@@ -1300,8 +1302,11 @@ async function rate(cheeseId, score, ev){
   // optimistisk: oppdater lokalt med en gang, så føles trykket momentant
   const existing = BOARD.ratings.find(r=>r.cheese_id===cheeseId && r.member===SESS.name);
   const note = existing ? existing.note : '';
-  if(existing){ existing.score = score; existing.updated_at = new Date().toISOString(); }
-  else BOARD.ratings.push({cheese_id:cheeseId, member:SESS.name, score, note:'', updated_at:new Date().toISOString()});
+  if(existing){
+    if(existing.score !== score) existing.changes = (existing.changes||0) + 1;
+    existing.score = score; existing.updated_at = new Date().toISOString();
+  }
+  else BOARD.ratings.push({cheese_id:cheeseId, member:SESS.name, score, note:'', updated_at:new Date().toISOString(), first_score:score, changes:0});
   saveLocal(); renderAll();
   if($('overlay-detail') && detailId===cheeseId) $('dHint').innerHTML = esc(EMO[score]+' '+EMO_WORD[score]) + hintUnrate(false);
   try{
@@ -1561,6 +1566,15 @@ const BADGES = [
   {id:'naert',    emo:'🏡', name:'Nabolagsost',      how:'Du har dømt en ost lagd under 100 km fra Flayosc!',      hidden:true, test:s=>s.near100},
   {id:'modig3',   emo:'🦸', name:'Superheltsmaker',  how:'Tre ganger modig – 😋 der andre sa 🤢!',                 hidden:true, test:s=>s.brave3>=3},
   {id:'kjaerlighet', emo:'💘', name:'Stinkelsker',   how:'Du ga 🤩 og 💩 til samme ost – ekte kjærlighet!',        hidden:true, test:s=>s.stinkelsker},
+  // meningsendring — smaken utvikler seg!
+  {id:'snudd',    emo:'🦋', name:'Snudd!',           how:'Du likte den ikke først – nå elsker du den! Smaken din vokser 🦋', hidden:true, test:s=>s.snudd},
+  {id:'exfan',    emo:'💔', name:'Falt fra troen',   how:'Du elsket den før… ikke nå lenger. Det er lov å vokse fra hverandre.', hidden:true, test:s=>s.exfan},
+  {id:'bergdal',  emo:'🎢', name:'Berg-og-dal-bane', how:'Du har ombestemt deg TRE ganger på samme ost!',          hidden:true, test:s=>s.bergdal},
+  // «tvilsom heder» 😅 — negative merker, godlynt erting
+  {id:'surmuler', emo:'🌩️', name:'Surpompen',        how:'Åtte dommer og snitt under 2.3… smiler du aldri? 😅',    hidden:true, negative:true, test:s=>s.surmuler},
+  {id:'sistemann',emo:'🐌', name:'Sistemann til bordet', how:'Fem oster der alle andre rakk å dømme før deg 😅',   hidden:true, negative:true, test:s=>s.sistemann>=5},
+  {id:'luktblind',emo:'🫥', name:'Luktblind',        how:'Ti dommer uten å bruke stinkometeret én eneste gang 😅', hidden:true, negative:true, test:s=>s.luktblind},
+  {id:'flokkdyr', emo:'🐑', name:'Flokkdyret',       how:'Du mener alltid akkurat det samme som alle andre 😅',    hidden:true, negative:true, test:s=>s.flokkdyr},
 ];
 
 /* regioner der medlemmet har dømt en ost med koordinater — [{f, oster}] */
@@ -1639,6 +1653,20 @@ function badgeStats(navn = SESS.name){
   const brave3 = new Set(mine.filter(r=>r.score>=4 && BOARD.ratings.some(o=>
     o.cheese_id===r.cheese_id && o.member!==navn && o.score===1)).map(r=>r.cheese_id)).size;
   const stinkelsker = mine.some(r=>r.score===5 && myStk.some(s=>s.cheese_id===r.cheese_id && s.stink===5));
+  // meningshistorikk (first_score/changes fra serveren) + «tvilsom heder»
+  const snudd  = mine.some(r=>r.first_score!=null && r.first_score<=2 && r.score>=4);
+  const exfan  = mine.some(r=>r.first_score!=null && r.first_score>=4 && r.score<=2);
+  const bergdal = mine.some(r=>(r.changes||0)>=3);
+  const snittDom = mine.length ? mine.reduce((a,r)=>a+r.score,0)/mine.length : null;
+  const sistemann = mine.filter(r=>{
+    const alle = BOARD.ratings.filter(o=>o.cheese_id===r.cheese_id);
+    return alle.length>=3 && alle.every(o=>o.member===navn || o.updated_at<r.updated_at);
+  }).length;
+  const medAndre = mine.filter(r=>BOARD.ratings.filter(o=>o.cheese_id===r.cheese_id && o.member!==navn).length>=2);
+  const flokkdyr = medAndre.length>=6 && medAndre.every(r=>{
+    const andre = BOARD.ratings.filter(o=>o.cheese_id===r.cheese_id && o.member!==navn);
+    return r.score === Math.round(andre.reduce((a,o)=>a+o.score,0)/andre.length);
+  });
   return {
     myRatings: mine.length,
     milks: ['Ku','Geit','Sau'].filter(m=>milks.has(m)).length,
@@ -1668,6 +1696,9 @@ function badgeStats(navn = SESS.name){
     festival: Object.values(perDag).some(n=>n>=3),
     enige, motstroms, tvilling, pioner, land,
     maxVar, parmeser, cheddarer, far1000, near100, brave3, stinkelsker,
+    snudd, exfan, bergdal, sistemann, flokkdyr,
+    surmuler: mine.length>=8 && snittDom<2.3,
+    luktblind: mine.length>=10 && myStk.length===0,
     dager: Object.keys(perDag).length,
     harParis: regionNavn.has('Île-de-France'),
     harKorsika: regionNavn.has('Corse'),
@@ -1692,8 +1723,9 @@ function checkNewBadges(){
   const nye = earned.filter(id=>!prev.includes(id));
   if(!nye.length) return;
   const b = BADGES.find(x=>x.id===nye[0]);
-  toast(`🏅 Nytt merke: ${b.emo} ${b.name}!` + (nye.length>1 ? ` (+${nye.length-1} til)` : ''));
-  confetti(innerWidth/2, innerHeight*0.35, b.emo, '🏅');
+  toast((b.negative ? `😅 Tvilsom heder: ${b.emo} ${b.name}…` : `🏅 Nytt merke: ${b.emo} ${b.name}!`)
+    + (nye.length>1 ? ` (+${nye.length-1} til)` : ''));
+  confetti(innerWidth/2, innerHeight*0.35, b.emo, b.negative ? '😅' : '🏅');
 }
 let passGeoTried = false;
 /* Mini-kart av regionen til passtempelet: geojson-omrisset projiseres inn i
@@ -1729,9 +1761,9 @@ function renderPass(){
       if(b.secret && !got)
         return `<div class="badge off secret"><span class="bemo">❓</span><b>Hemmelig merke</b>
           <span class="mini">Hva kan dette være…? 🤫</span></div>`;
-      return `<div class="badge ${got?'':'off'}">
+      return `<div class="badge ${got?'':'off'}${b.negative?' neg':''}">
         <span class="bemo">${b.emo}</span><b>${b.name}</b>
-        <span class="mini">${got ? ((b.secret||b.hidden) ? esc(b.how)+' 🎉' : 'Klart! 🎉') : esc(b.how)}</span></div>`;
+        <span class="mini">${got ? ((b.secret||b.hidden) ? esc(b.how)+(b.negative?'':' 🎉') : 'Klart! 🎉') : esc(b.how)}</span></div>`;
     }).join('')
     + (skjulte ? `<div class="badge off secret"><span class="bemo">🤫</span><b>${skjulte} skjulte merker</b>
         <span class="mini">Ingen hint! Smak, lukt, skriv og utforsk …</span></div>` : '')

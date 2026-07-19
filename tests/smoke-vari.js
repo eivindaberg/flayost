@@ -33,7 +33,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log(ok ? '  ✅' : '
     check(`«${id}» opptjent`, earned.includes(id), JSON.stringify(earned)));
   check('«hundre» IKKE opptjent (10 oster)', !earned.includes('hundre'));
   check('«dager10» IKKE opptjent (7 dager)', !earned.includes('dager10'));
-  check('63 merker totalt', await p.evaluate(() => BADGES.length) === 63);
+  check('70 merker totalt', await p.evaluate(() => BADGES.length) === 70);
   await b.close();
   console.log(`\n${pass} ok, ${fail} feil`); process.exit(fail ? 1 : 0);
 })().catch(e => { console.error('❌', e.message); process.exit(1); });

@@ -42,7 +42,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log(ok ? '  ✅' : '
   });
   ['italia','england','sveits','holland','spania','turist','verden5'].forEach(id =>
     check(`landmerke «${id}» opptjent`, earned.includes(id)));
-  check('teller: 63 merker totalt', await p.evaluate(() => BADGES.length) === 63);
+  check('teller: 70 merker totalt', await p.evaluate(() => BADGES.length) === 70);
 
   /* 3. variantflyt i «Ny ost» (stubbet lagring) */
   const saved = await p.evaluate(async () => {
