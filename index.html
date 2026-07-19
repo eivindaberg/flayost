@@ -777,6 +777,12 @@ async function refreshBoard(){
     const res = await rpc('flayost_get_board', {p_name:SESS.name, p_pin:SESS.pin});
     if(res && res.ok){
       BOARD = {members:res.members, cheeses:res.cheeses, ratings:res.ratings, stinks:res.stinks||[]};
+      // plukk opp endringer i egen rolle/figur gjort på serveren (f.eks.
+      // barn → voksen) uten at man må logge ut og inn igjen
+      const me = BOARD.members.find(m=>m.name===SESS.name);
+      if(me && (me.is_kid!==SESS.is_kid || me.avatar!==SESS.avatar)){
+        SESS.is_kid = me.is_kid; SESS.avatar = me.avatar;
+      }
       // dommer som fortsatt ligger i kø skal ikke forsvinne fra skjermen
       PENDING.forEach(p=>{
         const r = BOARD.ratings.find(x=>x.cheese_id===p.cheese_id && x.member===SESS.name);
