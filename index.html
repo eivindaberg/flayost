@@ -147,6 +147,7 @@
   .rline .note{color:var(--muted); font-size:14px; flex:1; font-style:italic;}
   .rline .sc{font-size:26px; margin-left:auto;}
   .rline.meline{box-shadow:inset 0 0 0 2px var(--ochre); background:var(--ochre-soft);}
+  .name .vari, #dName .vari{display:block; font-size:12.5px; font-weight:600; color:var(--muted);}
   .photobtn{display:flex; align-items:center; justify-content:center; gap:10px; background:var(--soft); border:2px dashed var(--line); border-radius:16px; padding:14px; font-weight:700; width:100%; font-size:16px;}
 
   /* ---------- osteforslag (oppslag mens du skriver) ---------- */
@@ -336,7 +337,7 @@
       <button class="ghost" onclick="saveNote()">Lagre</button>
     </div>
     <div class="rlist" id="dRatings"></div>
-    <button class="danger hidden" id="dDelete" style="width:100%; margin-top:14px;" onclick="deleteCheese()">🗑 Slett osten (kun voksne)</button>
+    <button class="danger hidden" id="dDelete" style="width:100%; margin-top:14px;" onclick="deleteCheese()">🗑 Slett osten (kun sjefene 👑)</button>
   </div>
 </div>
 
@@ -352,6 +353,11 @@
       <input type="text" id="addName" maxlength="60" placeholder="F.eks. Banon, Comté, Brie de Meaux…" autocomplete="off"
              oninput="onAddNameInput()" onfocus="renderSuggestions()" onblur="setTimeout(hideSuggestions,200)">
       <div class="suglist hidden" id="sugList"></div>
+    </div>
+    <button type="button" class="ghost small" id="variantToggle" onclick="toggleVariant()">+ produsent / lagringstid</button>
+    <div class="hidden" id="variantWrap">
+      <label class="blk">Produsent / lagringstid <span class="mini">(så Cheddar 12 mnd og 18 mnd kan dømmes hver for seg)</span></label>
+      <input type="text" id="addVariant" maxlength="40" placeholder="F.eks. Westcombe · 18 mnd" autocomplete="off">
     </div>
     <div class="originline hidden" id="originLine"></div>
     <div id="originManual">
@@ -724,6 +730,11 @@ function memberOf(name){ return BOARD.members.find(m=>m.name===name); }
 /* Nettbilde (Wikimedia, kuratert inn i CHEESES_FR ved dev-tid) for oster
    uten eget foto: eksakt navnetreff først, deretter delvis treff begge veier
    («Brie» finner Brie de Meaux, «Comté 24 mnd» finner Comté). */
+/* «Cheddar (Westcombe · 18 mnd)» → grunnavn + variantlinje i mindre skrift */
+function splitVariant(name){
+  const m = String(name||'').match(/^(.*?)\s*\((.+)\)\s*$/);
+  return m ? {base:m[1], vari:m[2]} : {base:name, vari:null};
+}
 function webImgFor(name){
   const f = fold(name);
   if(!f) return null;
@@ -797,8 +808,8 @@ async function refreshBoard(){
       // plukk opp endringer i egen rolle/figur gjort på serveren (f.eks.
       // barn → voksen) uten at man må logge ut og inn igjen
       const me = BOARD.members.find(m=>m.name===SESS.name);
-      if(me && (me.is_kid!==SESS.is_kid || me.avatar!==SESS.avatar)){
-        SESS.is_kid = me.is_kid; SESS.avatar = me.avatar;
+      if(me && (me.is_kid!==SESS.is_kid || me.avatar!==SESS.avatar || !!me.is_admin!==!!SESS.is_admin)){
+        SESS.is_kid = me.is_kid; SESS.avatar = me.avatar; SESS.is_admin = !!me.is_admin;
       }
       // dommer som fortsatt ligger i kø skal ikke forsvinne fra skjermen
       PENDING.forEach(p=>{
@@ -917,7 +928,7 @@ async function submitPin(){
       p_create: create
     });
     if(res && res.ok){
-      SESS = {name:res.member.name, pin:pinBuf, avatar:res.member.avatar, is_kid:res.member.is_kid};
+      SESS = {name:res.member.name, pin:pinBuf, avatar:res.member.avatar, is_kid:res.member.is_kid, is_admin:!!res.member.is_admin};
       saveLocal();
       if(res.created) toast(`Velkommen, ${SESS.name}! 🎉`);
       enterWall();
@@ -1056,7 +1067,7 @@ function renderWall(){
       ${photo}
       <div class="body">
         <div class="name-row" onclick="openDetail('${c.id}')">
-          <div class="name">${esc(c.name)}</div>
+          <div class="name">${(nv=>esc(nv.base)+(nv.vari?`<span class="vari">${esc(nv.vari)}</span>`:''))(splitVariant(c.name))}</div>
           <div class="avg">${avg!==null ? EMO[Math.round(avg)]+' '+avg.toFixed(1) : '–'} <small>(${n})</small></div>
         </div>
         <div class="meta">
@@ -1438,6 +1449,34 @@ function recAdd(i){
    ===================================================================== */
 function inFrance(lat, lng){ return lat>=41 && lat<=51.5 && lng>=-5.5 && lng<=10; }
 
+/* Grove landbokser for ostelandene utenfor Frankrike (til landmerkene).
+   Rekkefølgen er nøye: Korsika beskyttes først (er Frankrike), så sjekkes
+   Sveits/Italia som overlapper Frankrike-boksen, så Frankrike selv, og til
+   slutt resten. Grensene er trimmet så kjente osteområder havner riktig
+   (Franche-Comté ≠ Sveits, Nice ≠ Italia, fransk Baskerland ≠ Spania). */
+const LAND = [
+  // disse tre sjekkes FØR Frankrike (Frankrike-boksen er slurvete og
+  // overlapper dem — bl.a. ligger Cheddar i Somerset innenfor den!):
+  ['Sveits',        45.9, 47.8,  6.8, 10.5],
+  ['Italia',        36.5, 47.1,  7.6, 18.6],
+  ['Storbritannia', 49.9, 58.7, -8.2,  1.5],   // østgrense 1.5 så Boulogne-sur-Mer forblir fransk
+  // resten sjekkes etter at Frankrike er utelukket:
+  ['Spania',        35.9, 43.8, -9.4,  3.4],
+  ['Nederland',     50.7, 53.6,  3.3,  7.3],
+  ['Hellas',        34.8, 41.8, 19.3, 28.3],
+  ['Norge',         57.5, 71.5,  4.0, 31.0],
+  ['Storbritannia', 51.6, 58.7,  1.5,  1.8],   // East Anglia stikker øst for 1.5
+];
+function countryOf(lat, lng){
+  if(lat>=41.2 && lat<=43.1 && lng>=8.4 && lng<=9.7) return null;      // Korsika = Frankrike
+  for(const [navn, la1, la2, lo1, lo2] of LAND.slice(0,3))
+    if(lat>=la1 && lat<=la2 && lng>=lo1 && lng<=lo2) return navn;
+  if(inFrance(lat, lng)) return null;
+  for(const [navn, la1, la2, lo1, lo2] of LAND.slice(3))
+    if(lat>=la1 && lat<=la2 && lng>=lo1 && lng<=lo2) return navn;
+  return null;
+}
+
 const BADGES = [
   {id:'forste',    emo:'🧀',  name:'Første ost',      how:'Døm din aller første ost',                    test:s=>s.myRatings>=1},
   {id:'fem',       emo:'🖐️', name:'Femkamp',         how:'Døm 5 oster',                                 test:s=>s.myRatings>=5},
@@ -1485,6 +1524,16 @@ const BADGES = [
   {id:'mot',      emo:'🐟', name:'Motstrøms',        how:'Du ga 🤢 der noen andre ga 🤩!',                         hidden:true, test:s=>s.motstroms},
   {id:'tvilling', emo:'👯', name:'Smakstvilling',    how:'Du og et familiemedlem har dømt ti av de samme ostene!', hidden:true, test:s=>s.tvilling>=10},
   {id:'pioner',   emo:'🥇', name:'Førstesmaker',     how:'Du dømte en ost først – og minst to fulgte etter!',      hidden:true, test:s=>s.pioner},
+  // landmerker (skjulte): oster med koordinater utenfor Frankrike
+  {id:'italia',   emo:'🇮🇹', name:'Mamma mia!',       how:'Du har dømt en ost fra Italia!',                         hidden:true, test:s=>s.land.has('Italia')},
+  {id:'england',  emo:'🇬🇧', name:'Very british',     how:'Du har dømt en ost fra Storbritannia!',                  hidden:true, test:s=>s.land.has('Storbritannia')},
+  {id:'sveits',   emo:'🇨🇭', name:'Alpegull',         how:'Du har dømt en ost fra Sveits!',                         hidden:true, test:s=>s.land.has('Sveits')},
+  {id:'spania',   emo:'🇪🇸', name:'Olé olé!',         how:'Du har dømt en ost fra Spania!',                         hidden:true, test:s=>s.land.has('Spania')},
+  {id:'holland',  emo:'🇳🇱', name:'Gouda jobba!',     how:'Du har dømt en ost fra Nederland!',                      hidden:true, test:s=>s.land.has('Nederland')},
+  {id:'hellas',   emo:'🇬🇷', name:'Fetakompis',       how:'Du har dømt en ost fra Hellas!',                         hidden:true, test:s=>s.land.has('Hellas')},
+  {id:'norge',    emo:'🇳🇴', name:'Kortreist',        how:'Du har dømt en norsk ost – hjemme best!',                hidden:true, test:s=>s.land.has('Norge')},
+  {id:'turist',   emo:'🛫', name:'Osteturist',       how:'Du har dømt oster fra tre land utenfor Frankrike!',      hidden:true, test:s=>s.land.size>=3},
+  {id:'verden5',  emo:'🌐', name:'Verdensmester i ost', how:'Du har dømt oster fra FEM land utenfor Frankrike!',   hidden:true, test:s=>s.land.size>=5},
 ];
 
 /* regioner der medlemmet har dømt en ost med koordinater — [{f, oster}] */
@@ -1500,9 +1549,10 @@ function memberStampFeatures(name){
 function badgeStats(navn = SESS.name){
   const mine = BOARD.ratings.filter(r=>r.member===navn);
   const cheeses = mine.map(r=>BOARD.cheeses.find(c=>c.id===r.cheese_id)).filter(Boolean);
-  const milks = new Set(), texs = new Set();
+  const milks = new Set(), texs = new Set(), land = new Set();
   let abroad = false, geiter = 0, sauer = 0, kuer = 0, myke = 0, faste = 0, ferske = 0;
   cheeses.forEach(c=>{
+    if(hasCoords(c)){ const l = countryOf(+c.lat, +c.lng); if(l) land.add(l); }
     const {milk, tex} = parseType(c.type);
     if(milk) milks.add(milk);
     if(milk==='Geit') geiter++;
@@ -1567,7 +1617,7 @@ function badgeStats(navn = SESS.name){
     natt: mine.some(r=>new Date(r.updated_at).getHours()>=22),
     sondag: mine.some(r=>new Date(r.updated_at).getDay()===0),
     festival: Object.values(perDag).some(n=>n>=3),
-    enige, motstroms, tvilling, pioner,
+    enige, motstroms, tvilling, pioner, land,
     harParis: regionNavn.has('Île-de-France'),
     harKorsika: regionNavn.has('Corse'),
   };
@@ -1722,7 +1772,8 @@ function renderDetail(){
   if(!c){ closeDetail(); return; }
   const mine = myRating(c.id);
   const avg = avgOf(c.id), n = ratingsFor(c.id).length;
-  $('dName').textContent = c.name;
+  const dnv = splitVariant(c.name);
+  $('dName').innerHTML = esc(dnv.base) + (dnv.vari ? `<span class="vari">${esc(dnv.vari)}</span>` : '');
   $('dMeta').innerHTML = esc((c.type? c.type+' · ':'') + (c.origin? '📍 '+c.origin+' · ':'') + 'lagt til av ' + c.added_by)
     + ` &nbsp;<button class="ghost small" onclick="editOrigin()">${c.origin ? '✏️ endre sted' : '📍 legg til sted'}</button>`;
   const wimg = c.photo ? null : webImgFor(c.name);
@@ -1770,7 +1821,7 @@ function renderDetail(){
     const p=document.createElement('p'); p.className='mini center'; p.textContent='Bli den første som smaker!';
     list.appendChild(p);
   }
-  $('dDelete').classList.toggle('hidden', !SESS || SESS.is_kid);
+  $('dDelete').classList.toggle('hidden', !SESS || !SESS.is_admin);
 }
 async function saveNote(){
   const mine = myRating(detailId);
@@ -1797,7 +1848,7 @@ async function deleteCheese(){
     BOARD.ratings = BOARD.ratings.filter(r=>r.cheese_id!==detailId);
     saveLocal(); closeDetail(); renderAll();
     toast('Osten er slettet');
-  }catch(e){ toast('Fikk ikke slettet (kun voksne kan slette)'); }
+  }catch(e){ toast('Fikk ikke slettet (bare sjefene kan slette)'); }
 }
 
 /* =====================================================================
@@ -1809,6 +1860,8 @@ function openAdd(){
   $('addOrigin').value='';
   $('addPreview').classList.add('hidden');
   $('addFile').value='';
+  $('addVariant').value='';
+  $('variantWrap').classList.add('hidden');
   hideSuggestions(); hideOriginSugs(); renderOriginLine(); renderAddVits(true);
   const mr = $('milkRow'); mr.innerHTML='';
   MILKS.forEach(m=>{
@@ -1830,6 +1883,12 @@ function openAdd(){
   setTimeout(()=>$('addName').focus(), 100);
 }
 function closeAdd(){ hideSuggestions(); hideOriginSugs(); $('overlay-add').classList.add('hidden'); }
+/* variantfeltet er gjemt bak en liten lenke så vanlig-flyten forblir enkel */
+function toggleVariant(){
+  const w = $('variantWrap');
+  w.classList.toggle('hidden');
+  if(!w.classList.contains('hidden')) $('addVariant').focus();
+}
 function selectMilk(m){
   addMilk = m;
   [...$('milkRow').children].forEach((c,i)=>c.classList.toggle('on', MILKS[i]===m));
@@ -1987,8 +2046,12 @@ async function geocode(place){
   return null;
 }
 async function saveCheese(){
-  const name = $('addName').value.trim();
-  if(!name){ toast('Skriv hva osten heter 🧀'); return; }
+  const base = $('addName').value.trim();
+  if(!base){ toast('Skriv hva osten heter 🧀'); return; }
+  // varianten bakes inn i navnet: «Cheddar (Westcombe · 18 mnd)» — hver
+  // variant blir sin egen ost på tavla, uten skjemaendringer
+  const variant = $('addVariant').value.trim();
+  const name = base + (variant ? ` (${variant})` : '');
   const type = (addMilk[1]==='Vet ikke' ? '🧀' : addMilk[0]+' '+addMilk[1]) + (addTex ? ' · '+addTex : '');
   // sted: fra osteforslaget (med koordinater) eller fritekstfeltet (geokodes)
   const origin = addOriginPick ? addOriginPick.origin : $('addOrigin').value.trim();
