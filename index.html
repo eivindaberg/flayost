@@ -716,20 +716,35 @@ setInterval(refreshBoard, 90000);
 /* =====================================================================
    INNLOGGING
    ===================================================================== */
+/* Fersk medlemsliste fra serveren, så en helt ny enhet (tom localStorage,
+   f.eks. første besøk på flayost.eivindberg.no) viser familien med en gang
+   i stedet for å se ut som om bare «Ny smaker» finnes. */
+let WHO = null;
+async function loadWho(){
+  try{
+    const list = await rpc('flayost_who', {});
+    if(Array.isArray(list)){
+      WHO = list;
+      // ikke riv brukeren ut av PIN- eller ny-smaker-steget
+      if(!SESS && !$('login-who').classList.contains('hidden')) showWho();
+    }
+  }catch(e){ /* offline: cachede medlemmer holder */ }
+}
 function showWho(){
   $('login-who').classList.remove('hidden');
   $('login-new').classList.add('hidden');
   $('login-pin').classList.add('hidden');
   pinBuf=''; renderPinDots(); $('pinErr').textContent='';
   const wrap = $('memberButtons'); wrap.innerHTML='';
-  BOARD.members.forEach(m=>{
+  const members = (WHO && WHO.length) ? WHO : BOARD.members;
+  members.forEach(m=>{
     const b = document.createElement('button');
     b.className='member-btn';
     b.innerHTML = `<span class="ava">${esc(m.avatar)}</span>${esc(m.name)}`;
     b.onclick = ()=>{ pinTarget = m; startPin('login'); };
     wrap.appendChild(b);
   });
-  if(!BOARD.members.length){
+  if(!members.length){
     const p = document.createElement('p');
     p.className='mini center';
     p.style.gridColumn='1/-1';
@@ -815,6 +830,7 @@ function logout(){
   $('screen-login').classList.remove('hidden');
   closeDetail(); closeAdd();
   showWho();
+  loadWho();
 }
 
 /* =====================================================================
@@ -1701,7 +1717,7 @@ async function saveCheese(){
   $('vits-wall').textContent = v;
 }
 if(SESS){ enterWall(); refreshBoard(); }
-else showWho();
+else { showWho(); loadWho(); }
 </script>
 </body>
 </html>
