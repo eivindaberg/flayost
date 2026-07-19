@@ -1786,15 +1786,16 @@ function renderPass(){
       famGrupper.get(m.family).push(m);
     });
     if(famGrupper.size>=2){
+      // per capita: snitt merker per smaker, så store husstander ikke vinner på antall
       const rader = [...famGrupper.entries()].map(([f, medl])=>({
-        f, medl, sum: medl.reduce((a,m)=>a+earnedBadgesFor(m.name).length, 0)
-      })).sort((a,b)=>b.sum-a.sum || a.f.localeCompare(b.f,'no'));
-      const nivo = [...new Set(rader.map(r=>r.sum))];
+        f, medl, snitt: medl.reduce((a,m)=>a+earnedBadgesFor(m.name).length, 0) / medl.length
+      })).sort((a,b)=>b.snitt-a.snitt || a.f.localeCompare(b.f,'no'));
+      const nivo = [...new Set(rader.map(r=>r.snitt))];
       html += `<div class="fordeg-h">🏡 Familieligaen</div>` + rader.map(r=>{
-        const medal = ['🥇','🥈','🥉'][nivo.indexOf(r.sum)] || '🏅';
+        const medal = ['🥇','🥈','🥉'][nivo.indexOf(r.snitt)] || '🏅';
         return `<div class="rline"><span class="ava">${medal}</span><span class="who">${esc(r.f)}</span>
           <span class="mini" style="margin-left:6px">${r.medl.length} ${r.medl.length===1?'smaker':'smakere'}</span>
-          <span class="sc" style="font-size:16px; font-weight:800">${r.sum} merker</span></div>`;
+          <span class="sc" style="font-size:16px; font-weight:800">${r.snitt.toFixed(1)} merker/smaker</span></div>`;
       }).join('');
     }
     const others = BOARD.members.filter(m=>m.name!==SESS.name);
