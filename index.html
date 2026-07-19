@@ -146,6 +146,7 @@
   .rline .who{font-weight:800;}
   .rline .note{color:var(--muted); font-size:14px; flex:1; font-style:italic;}
   .rline .sc{font-size:26px; margin-left:auto;}
+  .rline.meline{box-shadow:inset 0 0 0 2px var(--ochre); background:var(--ochre-soft);}
   .photobtn{display:flex; align-items:center; justify-content:center; gap:10px; background:var(--soft); border:2px dashed var(--line); border-radius:16px; padding:14px; font-weight:700; width:100%; font-size:16px;}
 
   /* ---------- osteforslag (oppslag mens du skriver) ---------- */
@@ -1496,8 +1497,8 @@ function memberStampFeatures(name){
     .map(f=>({f, oster: rated.filter(c=>inRegion(+c.lat, +c.lng, f))}))
     .filter(x=>x.oster.length);
 }
-function badgeStats(){
-  const mine = BOARD.ratings.filter(r=>r.member===SESS.name);
+function badgeStats(navn = SESS.name){
+  const mine = BOARD.ratings.filter(r=>r.member===navn);
   const cheeses = mine.map(r=>BOARD.cheeses.find(c=>c.id===r.cheese_id)).filter(Boolean);
   const milks = new Set(), texs = new Set();
   let abroad = false, geiter = 0, sauer = 0, kuer = 0, myke = 0, faste = 0, ferske = 0;
@@ -1514,30 +1515,30 @@ function badgeStats(){
     if(hasCoords(c) && !inFrance(+c.lat, +c.lng)) abroad = true;
   });
   const brave = mine.some(r=>r.score>=4 && BOARD.ratings.some(o=>
-    o.cheese_id===r.cheese_id && o.member!==SESS.name && o.score===1));
-  const myStk = (BOARD.stinks||[]).filter(s=>s.member===SESS.name);
-  const lagtTil = BOARD.cheeses.filter(c=>c.added_by===SESS.name);
+    o.cheese_id===r.cheese_id && o.member!==navn && o.score===1));
+  const myStk = (BOARD.stinks||[]).filter(s=>s.member===navn);
+  const lagtTil = BOARD.cheeses.filter(c=>c.added_by===navn);
   // dommer per dag + sosiale statistikker (enighet, motstrøms, tvilling, pioner)
   const perDag = {};
   mine.forEach(r=>{ const d = String(r.updated_at).slice(0,10); perDag[d] = (perDag[d]||0)+1; });
   let enige = 0, motstroms = false;
   mine.forEach(r=>{
-    const andre = BOARD.ratings.filter(o=>o.cheese_id===r.cheese_id && o.member!==SESS.name);
+    const andre = BOARD.ratings.filter(o=>o.cheese_id===r.cheese_id && o.member!==navn);
     if(andre.some(o=>o.score===r.score)) enige++;
     if(r.score===1 && andre.some(o=>o.score===5)) motstroms = true;
   });
   const mineIds = new Set(mine.map(r=>r.cheese_id));
   let tvilling = 0;
   BOARD.members.forEach(m=>{
-    if(m.name===SESS.name) return;
+    if(m.name===navn) return;
     const felles = BOARD.ratings.filter(o=>o.member===m.name && mineIds.has(o.cheese_id)).length;
     if(felles>tvilling) tvilling = felles;
   });
   const pioner = mine.some(r=>{
     const alle = BOARD.ratings.filter(o=>o.cheese_id===r.cheese_id);
-    return alle.length>=3 && alle.every(o=>o.member===SESS.name || o.updated_at>r.updated_at);
+    return alle.length>=3 && alle.every(o=>o.member===navn || o.updated_at>r.updated_at);
   });
-  const stampF = memberStampFeatures(SESS.name);
+  const stampF = memberStampFeatures(navn);
   const regionNavn = new Set(stampF.map(x=>x.f.properties.nom));
   return {
     myRatings: mine.length,
@@ -1559,7 +1560,7 @@ function badgeStats(){
     langNotat: mine.some(r=>(r.note||'').length>=80),
     lagtTil: lagtTil.length,
     medBilde: lagtTil.some(c=>c.photo),
-    elsket: lagtTil.some(c=>BOARD.ratings.some(r=>r.cheese_id===c.id && r.member!==SESS.name && r.score===5)),
+    elsket: lagtTil.some(c=>BOARD.ratings.some(r=>r.cheese_id===c.id && r.member!==navn && r.score===5)),
     stink1: myStk.some(s=>s.stink===1),
     stink4: myStk.filter(s=>s.stink===4).length,
     stink5: new Set(myStk.filter(s=>s.stink===5).map(s=>s.cheese_id)).size,
@@ -1571,10 +1572,11 @@ function badgeStats(){
     harKorsika: regionNavn.has('Corse'),
   };
 }
-function earnedBadges(){
-  const s = badgeStats();
+function earnedBadgesFor(navn){
+  const s = badgeStats(navn);
   return BADGES.filter(b=>b.test(s));
 }
+function earnedBadges(){ return earnedBadgesFor(SESS.name); }
 function checkNewBadges(){
   if(!SESS) return;
   const key = 'flayost_badges_' + SESS.name;
@@ -1633,6 +1635,16 @@ function renderPass(){
     + (skjulte ? `<div class="badge off secret"><span class="bemo">🤫</span><b>${skjulte} skjulte merker</b>
         <span class="mini">Ingen hint! Smak, lukt, skriv og utforsk …</span></div>` : '')
     + '</div>';
+  // merkeligaen: alle smakere rangert etter antall merker (delt plass ved likt)
+  const liga = BOARD.members.map(m=>({m, n: earnedBadgesFor(m.name).length}))
+    .sort((a,b)=>b.n-a.n || a.m.name.localeCompare(b.m.name,'no'));
+  const nivaer = [...new Set(liga.map(x=>x.n))];
+  html += `<div class="fordeg-h">🏆 Merkeligaen</div>` + liga.map(x=>{
+    const medal = ['🥇','🥈','🥉'][nivaer.indexOf(x.n)] || '🏅';
+    return `<div class="rline${x.m.name===SESS.name?' meline':''}"><span class="ava">${medal}</span><span class="ava">${esc(x.m.avatar)}</span>
+      <span class="who">${esc(x.m.name)}</span>
+      <span class="sc" style="font-size:16px; font-weight:800">${x.n} ${x.n===1?'merke':'merker'}</span></div>`;
+  }).join('');
   html += `<div class="fordeg-h">🛂 Stempler fra Frankrike</div>`;
   if(!regionsGeo){
     if(!passGeoTried){
