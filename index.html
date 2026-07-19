@@ -184,6 +184,9 @@
   .stamp .mini{font-size:11.5px;}
   .stamp.got{border-color:var(--ochre); border-style:solid; color:var(--ink); background:var(--ochre-soft); transform:rotate(-2deg); box-shadow:0 8px 24px rgba(80,50,10,.13);}
   .stamp.got:nth-child(even){transform:rotate(2deg);}
+  .stamp .sreg{width:56px; height:56px; display:block; margin:0 auto 3px;}
+  .stamp .sreg path{fill:#eee6d6; stroke:#b7a88e; stroke-width:1.6; stroke-linejoin:round;}
+  .stamp.got .sreg path{fill:var(--ochre); stroke:#7f4a06;}
   .passbar{height:12px; background:var(--soft); border-radius:999px; overflow:hidden; margin:8px 0 14px;}
   .passbar i{display:block; height:100%; background:linear-gradient(90deg,#ecc27c,var(--ochre)); border-radius:999px;}
 
@@ -259,9 +262,9 @@
   <div id="screen-wall" class="hidden">
     <div class="topbar">
       <div class="brand">🧀 Flayost<small>Familiens ostesmaking i Flayosc</small></div>
-      <button class="me" onclick="logout()" title="Bytt smaker">
+      <button class="me" onclick="openMe()" title="Min side">
         <span class="ava" id="meAva">🧀</span><span id="meName"></span>
-        <span class="mini">bytt</span>
+        <span class="mini">meg</span>
       </button>
     </div>
     <div class="tabs">
@@ -335,7 +338,11 @@
     <div class="originline hidden" id="originLine"></div>
     <div id="originManual">
       <label class="blk">Hvor er den fra? <span class="mini">(valgfritt)</span></label>
-      <input type="text" id="addOrigin" maxlength="60" placeholder="F.eks. Provence, Normandie…" autocomplete="off">
+      <div class="sugwrap">
+        <input type="text" id="addOrigin" maxlength="60" placeholder="F.eks. Provence, Normandie…" autocomplete="off"
+               oninput="renderOriginSugs()" onfocus="renderOriginSugs()" onblur="setTimeout(hideOriginSugs,200)">
+        <div class="suglist hidden" id="origList"></div>
+      </div>
     </div>
     <label class="blk">Melk fra…</label>
     <div class="row" id="milkRow"></div>
@@ -347,6 +354,19 @@
     <img id="addPreview" class="hidden" alt="">
     <p class="ostevits" id="vits-add"></p>
     <button class="primary" id="addSave" onclick="saveCheese()">Legg til osten</button>
+  </div>
+</div>
+
+<!-- ================= MIN SIDE ================= -->
+<div class="overlay hidden" id="overlay-me" onclick="if(event.target===this)closeMe()">
+  <div class="sheet">
+    <div class="sheet-top">
+      <h2 id="meTitle">Min side</h2>
+      <button class="closex" onclick="closeMe()">✕</button>
+    </div>
+    <label class="blk">Figuren din <span class="mini">(vises på tavla og i passet)</span></label>
+    <div class="ava-grid" id="meAvaGrid"></div>
+    <button class="ghost" style="width:100%; margin-top:16px;" onclick="closeMe();logout()">👋 Bytt smaker</button>
   </div>
 </div>
 
@@ -581,6 +601,46 @@ const CHEESES_FR = [
   {name:'La vache qui rit', milk:'Ku', origin:'Lons-le-Saunier (Jura)', lat:46.6744, lng:5.5539},
   {name:'Kiri', milk:'Ku', origin:'Lons-le-Saunier (Jura)', lat:46.6744, lng:5.5539, tex:'Fersk'},
   {name:'Cancoillotte', milk:'Ku', origin:'Franche-Comté', lat:47.0000, lng:6.0000, tex:'Fersk'}
+];
+
+/* ---------- franske regioner til «Hvor er den fra?» ----------
+   Autoutfylling mot skrivefeil. De 13 offisielle regionene er stavet nøyaktig
+   som i regions-geojsonen (varmekartet/passet), + klassiske osteområder.
+   Koordinatene ligger trygt INNI riktig region, så valgte steder havner rett
+   på kartet og gir passstempel uten Nominatim-geokoding. */
+const REGIONS_FR = [
+  {name:'Auvergne-Rhône-Alpes', lat:45.36, lng:4.60},
+  {name:'Bourgogne-Franche-Comté', lat:47.28, lng:4.99},
+  {name:'Bretagne', lat:48.20, lng:-2.93},
+  {name:'Centre-Val de Loire', lat:47.50, lng:1.75},
+  {name:'Corse', lat:42.15, lng:9.10},
+  {name:'Grand Est', lat:48.70, lng:5.60},
+  {name:'Hauts-de-France', lat:49.97, lng:2.79},
+  {name:'Île-de-France', lat:48.71, lng:2.50},
+  {name:'Normandie', lat:49.00, lng:0.20},
+  {name:'Nouvelle-Aquitaine', lat:45.20, lng:0.30},
+  {name:'Occitanie', lat:43.70, lng:2.20},
+  {name:'Pays de la Loire', lat:47.47, lng:-0.85},
+  {name:"Provence-Alpes-Côte d'Azur", lat:43.94, lng:6.06},
+  // klassiske osteområder
+  {name:'Provence', lat:43.83, lng:5.78},
+  {name:'Savoie', lat:45.57, lng:6.39},
+  {name:'Haute-Savoie', lat:46.05, lng:6.30},
+  {name:'Alsace', lat:48.32, lng:7.44},
+  {name:'Auvergne', lat:45.55, lng:3.25},
+  {name:'Bourgogne', lat:47.32, lng:5.04},
+  {name:'Franche-Comté', lat:47.02, lng:6.15},
+  {name:'Jura', lat:46.67, lng:5.55},
+  {name:'Périgord', lat:45.18, lng:0.72},
+  {name:'Béarn', lat:43.30, lng:-0.37},
+  {name:'Pays Basque', lat:43.35, lng:-1.30},
+  {name:'Lorraine', lat:48.68, lng:6.18},
+  {name:'Champagne', lat:49.05, lng:4.03},
+  {name:'Picardie', lat:49.90, lng:2.30},
+  {name:'Touraine', lat:47.37, lng:0.70},
+  {name:'Aveyron', lat:44.35, lng:2.57},
+  {name:'Languedoc', lat:43.60, lng:3.50},
+  {name:'Dauphiné', lat:45.10, lng:5.60},
 ];
 
 let SESS = null;                                   // {name, pin, avatar, is_kid}
@@ -828,7 +888,7 @@ function logout(){
   localStorage.removeItem(LS_SESS);
   $('screen-wall').classList.add('hidden');
   $('screen-login').classList.remove('hidden');
-  closeDetail(); closeAdd();
+  closeDetail(); closeAdd(); closeMe();
   showWho();
   loadWho();
 }
@@ -840,6 +900,37 @@ function enterWall(){
   $('screen-login').classList.add('hidden');
   $('screen-wall').classList.remove('hidden');
   renderAll();
+}
+/* ---------- min side: bytt figur (gjenbruker flayost_login sin
+   avatar-oppdatering — ingen egen RPC) ---------- */
+function openMe(){
+  if(!SESS) return;
+  $('meTitle').textContent = `${SESS.name} sin side`;
+  const g = $('meAvaGrid'); g.innerHTML='';
+  AVATARS.forEach(a=>{
+    const b = document.createElement('button');
+    b.textContent = a;
+    if(a===SESS.avatar) b.classList.add('on');
+    b.onclick = ()=>setMyAvatar(a);
+    g.appendChild(b);
+  });
+  $('overlay-me').classList.remove('hidden');
+}
+function closeMe(){ $('overlay-me').classList.add('hidden'); }
+async function setMyAvatar(a){
+  if(a===SESS.avatar) return;
+  try{
+    const res = await rpc('flayost_login', {p_name:SESS.name, p_pin:SESS.pin, p_avatar:a, p_create:false});
+    if(res && res.ok){
+      SESS.avatar = res.member.avatar;
+      const m = memberOf(SESS.name); if(m) m.avatar = SESS.avatar;
+      saveLocal();
+      [...$('meAvaGrid').children].forEach(c=>c.classList.toggle('on', c.textContent===SESS.avatar));
+      renderAll();
+      confetti(innerWidth/2, 90, a);
+      toast(`Figuren din er nå ${a}`);
+    }else toast('Fikk ikke byttet figur – prøv igjen');
+  }catch(e){ toast('Sjekk nettet og prøv igjen'); }
 }
 function renderAll(){
   if(!SESS) return;
@@ -1365,6 +1456,23 @@ function checkNewBadges(){
   confetti(innerWidth/2, innerHeight*0.35, b.emo, '🏅');
 }
 let passGeoTried = false;
+/* Mini-kart av regionen til passtempelet: geojson-omrisset projiseres inn i
+   en 64×64-boks (enkel plate carrée, x skalert med cos av midtbredden så
+   formen ikke blir flatklemt). Returnerer SVG-path-data. */
+function regionSVGPath(f, size, pad){
+  const g = f.geometry;
+  const polys = g.type==='Polygon' ? [g.coordinates] : g.coordinates;
+  let minX=Infinity, maxX=-Infinity, minY=Infinity, maxY=-Infinity;
+  polys.forEach(rings=>rings[0].forEach(p=>{
+    if(p[0]<minX)minX=p[0]; if(p[0]>maxX)maxX=p[0];
+    if(p[1]<minY)minY=p[1]; if(p[1]>maxY)maxY=p[1];
+  }));
+  const k = Math.cos((minY+maxY)/2*Math.PI/180);
+  const w=(maxX-minX)*k, h=maxY-minY, S=(size-2*pad)/Math.max(w,h);
+  const ox = pad+(size-2*pad-w*S)/2, oy = pad+(size-2*pad-h*S)/2;
+  const pt = p => (ox+(p[0]-minX)*k*S).toFixed(1)+' '+(oy+(maxY-p[1])*S).toFixed(1);
+  return polys.map(rings=>rings.map(ring=>'M'+ring.map(pt).join('L')+'Z').join('')).join('');
+}
 function renderPass(){
   const wrap = $('pass');
   if(!SESS) return;
@@ -1398,8 +1506,10 @@ function renderPass(){
       <p class="mini center" style="margin:-4px 0 10px"><b>${gotten.size} av ${feats.length} regioner stemplet${gotten.size===feats.length?'! 🎉🇫🇷':''}</b></p>`;
     html += `<div class="stamps">` + feats.map(f=>{
       const oster = gotten.get(f.properties.nom);
-      return `<div class="stamp ${oster?'got':''}"><span class="semo">${oster?'🧀':'✈️'}</span>
-        <b>${esc(f.properties.nom)}</b>
+      return `<div class="stamp ${oster?'got':''}">
+        <svg class="sreg" viewBox="0 0 64 64" fill-rule="evenodd" aria-hidden="true">
+          <path d="${regionSVGPath(f, 64, 5)}"/></svg>
+        <b>${oster?'🧀 ':''}${esc(f.properties.nom)}</b>
         <span class="mini">${oster ? esc(oster.map(c=>c.name).join(', ')) : 'ikke smakt ennå'}</span></div>`;
     }).join('');
     const abroad = BOARD.ratings.filter(r=>r.member===SESS.name)
@@ -1536,7 +1646,7 @@ function openAdd(){
   $('addOrigin').value='';
   $('addPreview').classList.add('hidden');
   $('addFile').value='';
-  hideSuggestions(); renderOriginLine(); renderAddVits(true);
+  hideSuggestions(); hideOriginSugs(); renderOriginLine(); renderAddVits(true);
   const mr = $('milkRow'); mr.innerHTML='';
   MILKS.forEach(m=>{
     const b=document.createElement('button');
@@ -1556,7 +1666,7 @@ function openAdd(){
   $('overlay-add').classList.remove('hidden');
   setTimeout(()=>$('addName').focus(), 100);
 }
-function closeAdd(){ hideSuggestions(); $('overlay-add').classList.add('hidden'); }
+function closeAdd(){ hideSuggestions(); hideOriginSugs(); $('overlay-add').classList.add('hidden'); }
 function selectMilk(m){
   addMilk = m;
   [...$('milkRow').children].forEach((c,i)=>c.classList.toggle('on', MILKS[i]===m));
@@ -1647,6 +1757,39 @@ function renderOriginLine(){
 }
 function clearPickedOrigin(){
   addOriginPick = null;
+  renderOriginLine();
+}
+/* ---------- regionforslag i «Hvor er den fra?» (mot skrivefeil) ---------- */
+function regionSuggest(q){
+  const f = fold(q);
+  if(!f) return [];
+  const pre=[], sub=[];
+  for(const r of REGIONS_FR){
+    const fr = fold(r.name);
+    if(fr.startsWith(f)) pre.push(r);
+    else if(fr.includes(f)) sub.push(r);
+  }
+  return pre.concat(sub).slice(0,6);
+}
+function renderOriginSugs(){
+  const list = $('origList');
+  const hits = regionSuggest($('addOrigin').value);
+  list.innerHTML='';
+  if(!hits.length){ list.classList.add('hidden'); return; }
+  hits.forEach(r=>{
+    const b = document.createElement('button');
+    b.type='button'; b.className='sugitem';
+    b.innerHTML = `<span class="smilk">🗺️</span><span class="sname">${esc(r.name)}</span>`;
+    b.onpointerdown = ev=>{ ev.preventDefault(); pickOriginRegion(r); };
+    list.appendChild(b);
+  });
+  list.classList.remove('hidden');
+}
+function hideOriginSugs(){ const l=$('origList'); l.classList.add('hidden'); l.innerHTML=''; }
+function pickOriginRegion(r){
+  addOriginPick = {origin:r.name, lat:r.lat, lng:r.lng};
+  $('addOrigin').value='';
+  hideOriginSugs();
   renderOriginLine();
 }
 function onPhotoPicked(input){
