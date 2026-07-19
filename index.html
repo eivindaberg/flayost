@@ -178,6 +178,7 @@
   .badge b{display:block; font-size:14px;}
   .badge .mini{font-size:11.5px; display:block; margin-top:2px;}
   .badge.off{opacity:.5; filter:grayscale(1); box-shadow:none; background:rgba(255,253,247,.6);}
+  .badge.secret{border:2px dashed var(--line);}
   .stamp{background:rgba(255,253,247,.6); border:3px dashed var(--line); border-radius:14px; padding:12px 10px; text-align:center; color:var(--muted);}
   .stamp b{display:block; font-size:13.5px;}
   .stamp .semo{font-size:30px; display:block; margin-bottom:2px;}
@@ -195,9 +196,13 @@
   }
   .poop-drop{position:absolute; top:-14vh; line-height:1; animation:poopfall linear forwards;}
   @keyframes poopfall{to{transform:translateY(125vh) rotate(360deg);}}
-  .stamp .sreg{width:56px; height:56px; display:block; margin:0 auto 3px;}
-  .stamp .sreg path{fill:#eee6d6; stroke:#b7a88e; stroke-width:1.6; stroke-linejoin:round;}
+  /* regionkartet ligger som bakgrunn i stempelet, teksten oppå */
+  .stamp{position:relative; overflow:hidden; min-height:96px; display:flex; flex-direction:column; justify-content:center;}
+  .stamp .sreg{position:absolute; left:0; top:0; width:100%; height:100%;}
+  .stamp .sreg path{fill:#ece4d2; stroke:#c4b596; stroke-width:1.6; stroke-linejoin:round;}
+  .stamp.got .sreg{opacity:.42;}
   .stamp.got .sreg path{fill:var(--ochre); stroke:#7f4a06;}
+  .stamp b, .stamp .mini, .stamp .semo{position:relative;}
   .passbar{height:12px; background:var(--soft); border-radius:999px; overflow:hidden; margin:8px 0 14px;}
   .passbar i{display:block; height:100%; background:linear-gradient(90deg,#ecc27c,var(--ochre)); border-radius:999px;}
 
@@ -1436,13 +1441,20 @@ const BADGES = [
   {id:'fem',       emo:'🖐️', name:'Femkamp',         how:'Døm 5 oster',                                 test:s=>s.myRatings>=5},
   {id:'ti',        emo:'🔟',  name:'Ostemester',      how:'Døm 10 oster',                                test:s=>s.myRatings>=10},
   {id:'tjue',      emo:'👑',  name:'Ostekonge',       how:'Døm 20 oster',                                test:s=>s.myRatings>=20},
+  {id:'femti',     emo:'🏆',  name:'Ostelegende',     how:'Døm 50 oster',                                test:s=>s.myRatings>=50},
   {id:'melk',      emo:'🐄',  name:'Alle melketyper', how:'Smak ost av ku, geit og sau',                 test:s=>s.milks>=3},
+  {id:'geiti',     emo:'🐐',  name:'Geitemester',     how:'Døm 10 forskjellige geitoster',               test:s=>s.geiter>=10},
   {id:'bla',       emo:'🫐',  name:'Blåmuggmodig',    how:'Smak en blåmuggost',                          test:s=>s.blue},
   {id:'modig',     emo:'💪',  name:'Modig',           how:'Gi 😋 eller 🤩 til en ost noen andre ga 🤢',  test:s=>s.brave},
   {id:'rumpe',     emo:'💩',  name:'RUMPE!',          how:'Gi 5 på stinkometeret',                       test:s=>s.rumpe},
   {id:'nese',      emo:'👃',  name:'Supernese',       how:'Lukt på 5 oster med stinkometeret',           test:s=>s.myStinks>=5},
   {id:'verden',    emo:'🌍',  name:'Verdensvandrer',  how:'Smak en ost som ikke er fra Frankrike',       test:s=>s.abroad},
   {id:'frankrike', emo:'🗺️', name:'Frankrike rundt', how:'Få stempler fra 5 franske regioner',          test:s=>s.regions>=5},
+  // hemmelige merker: vises som ❓ i passet til de er klart — oppskriften
+  // avsløres først når man klarer det (men de ER klarbare, ikke pynt!)
+  {id:'folelser',   emo:'🎭', name:'Hele følelsesregisteret', how:'Du har brukt alle de fem dommene, fra 🤢 til 🤩!', secret:true, test:s=>s.allScores},
+  {id:'stinkskala', emo:'🌈', name:'Hele stinkskalaen',       how:'Du har brukt alle de fem lukttrinnene, fra 🌸 til 💩!', secret:true, test:s=>s.allStinks},
+  {id:'frokost',    emo:'🥐', name:'FrokOST',                 how:'Du har dømt en ost før klokka 08 om morgenen!', secret:true, test:s=>s.frokost},
 ];
 
 /* regioner der medlemmet har dømt en ost med koordinater — [{f, oster}] */
@@ -1459,10 +1471,11 @@ function badgeStats(){
   const mine = BOARD.ratings.filter(r=>r.member===SESS.name);
   const cheeses = mine.map(r=>BOARD.cheeses.find(c=>c.id===r.cheese_id)).filter(Boolean);
   const milks = new Set(), texs = new Set();
-  let abroad = false;
+  let abroad = false, geiter = 0;
   cheeses.forEach(c=>{
     const {milk, tex} = parseType(c.type);
     if(milk) milks.add(milk);
+    if(milk==='Geit') geiter++;
     if(tex) texs.add(tex);
     if(hasCoords(c) && !inFrance(+c.lat, +c.lng)) abroad = true;
   });
@@ -1472,12 +1485,16 @@ function badgeStats(){
   return {
     myRatings: mine.length,
     milks: ['Ku','Geit','Sau'].filter(m=>milks.has(m)).length,
+    geiter,
     blue: texs.has('Blå'),
     brave,
     rumpe: myStk.some(s=>s.stink===5),
     myStinks: myStk.length,
     abroad,
     regions: memberStampFeatures(SESS.name).length,
+    allScores: new Set(mine.map(r=>r.score)).size===5,
+    allStinks: new Set(myStk.map(s=>s.stink)).size===5,
+    frokost: mine.some(r=>new Date(r.updated_at).getHours()<8),
   };
 }
 function earnedBadges(){
@@ -1528,9 +1545,15 @@ function renderPass(){
     <b style="font-size:19px">${esc(SESS.name)} sitt ostepass</b>
     <div class="mini">${stats.myRatings} ${stats.myRatings===1?'ost':'oster'} dømt · ${earned.size} av ${BADGES.length} merker</div></div></div>`;
   html += `<div class="fordeg-h">🏅 Merker</div><div class="badges">`
-    + BADGES.map(b=>`<div class="badge ${earned.has(b.id)?'':'off'}">
+    + BADGES.map(b=>{
+      const got = earned.has(b.id);
+      if(b.secret && !got)
+        return `<div class="badge off secret"><span class="bemo">❓</span><b>Hemmelig merke</b>
+          <span class="mini">Hva kan dette være…? 🤫</span></div>`;
+      return `<div class="badge ${got?'':'off'}">
         <span class="bemo">${b.emo}</span><b>${b.name}</b>
-        <span class="mini">${earned.has(b.id) ? 'Klart! 🎉' : esc(b.how)}</span></div>`).join('')
+        <span class="mini">${got ? (b.secret ? esc(b.how)+' 🎉' : 'Klart! 🎉') : esc(b.how)}</span></div>`;
+    }).join('')
     + '</div>';
   html += `<div class="fordeg-h">🛂 Stempler fra Frankrike</div>`;
   if(!regionsGeo){
