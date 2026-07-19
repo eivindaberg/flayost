@@ -51,6 +51,7 @@
   #screen-login{max-width:560px; margin:0 auto;}
   .logo{font-size:64px; text-align:center; line-height:1; margin:6px 0 4px;}
   .members{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin:6px 0 2px;}
+  .famhead{grid-column:1/-1; font-size:13px; font-weight:800; color:var(--muted); margin:8px 2px 0; text-align:left;}
   .member-btn{background:var(--soft); border:2px solid var(--line); border-radius:18px; padding:14px 8px; text-align:center; font-weight:800; font-size:17px;}
   .member-btn .ava{display:block; font-size:40px; margin-bottom:6px;}
   .newbtn{background:var(--ochre-soft); border:2px dashed var(--ochre); color:var(--ochre);}
@@ -382,6 +383,12 @@
     </div>
     <label class="blk">Figuren din <span class="mini">(vises på tavla og i passet)</span></label>
     <div class="ava-grid" id="meAvaGrid"></div>
+    <label class="blk">Familiegruppe <span class="mini">(f.eks. «Hytta i Flayosc», «Oslo-gjengen»)</span></label>
+    <div class="flex">
+      <input type="text" id="meFamily" maxlength="30" list="familyList" placeholder="Ingen gruppe ennå" autocomplete="off">
+      <button class="ghost" onclick="saveFamily()">Lagre</button>
+    </div>
+    <datalist id="familyList"></datalist>
     <button class="ghost" style="width:100%; margin-top:16px;" onclick="closeMe();logout()">🚪 Logg ut <span class="mini">(bytt smaker)</span></button>
   </div>
 </div>
@@ -834,12 +841,29 @@ function showWho(){
   pinBuf=''; renderPinDots(); $('pinErr').textContent='';
   const wrap = $('memberButtons'); wrap.innerHTML='';
   const members = (WHO && WHO.length) ? WHO : BOARD.members;
+  // grupper knappene per familiegruppe når noen har valgt en; ugrupperte sist
+  const grupper = new Map();
   members.forEach(m=>{
-    const b = document.createElement('button');
-    b.className='member-btn';
-    b.innerHTML = `<span class="ava">${esc(m.avatar)}</span>${esc(m.name)}`;
-    b.onclick = ()=>{ pinTarget = m; startPin('login'); };
-    wrap.appendChild(b);
+    const f = m.family || '';
+    if(!grupper.has(f)) grupper.set(f, []);
+    grupper.get(f).push(m);
+  });
+  const nokler = [...grupper.keys()].sort((a,b)=>(a==='')-(b==='') || a.localeCompare(b,'no'));
+  const flereGrupper = nokler.length>1 || (nokler.length===1 && nokler[0]!=='');
+  nokler.forEach(f=>{
+    if(flereGrupper){
+      const h = document.createElement('div');
+      h.className='famhead';
+      h.textContent = f ? `🏡 ${f}` : (nokler.length>1 ? 'Flere smakere' : '');
+      if(h.textContent) wrap.appendChild(h);
+    }
+    grupper.get(f).forEach(m=>{
+      const b = document.createElement('button');
+      b.className='member-btn';
+      b.innerHTML = `<span class="ava">${esc(m.avatar)}</span>${esc(m.name)}`;
+      b.onclick = ()=>{ pinTarget = m; startPin('login'); };
+      wrap.appendChild(b);
+    });
   });
   if(!members.length){
     const p = document.createElement('p');
@@ -943,6 +967,10 @@ function enterWall(){
 function openMe(){
   if(!SESS) return;
   $('meTitle').textContent = `${SESS.name} sin side`;
+  // familiegruppe: nåværende verdi + forslag fra gruppene som alt finnes
+  $('meFamily').value = memberOf(SESS.name)?.family || '';
+  $('familyList').innerHTML = [...new Set(BOARD.members.map(m=>m.family).filter(Boolean))]
+    .map(f=>`<option value="${esc(f)}">`).join('');
   const g = $('meAvaGrid'); g.innerHTML='';
   AVATARS.forEach(a=>{
     const b = document.createElement('button');
@@ -954,6 +982,17 @@ function openMe(){
   $('overlay-me').classList.remove('hidden');
 }
 function closeMe(){ $('overlay-me').classList.add('hidden'); }
+async function saveFamily(){
+  const f = $('meFamily').value.trim();
+  try{
+    const res = await rpc('flayost_set_family', {p_name:SESS.name, p_pin:SESS.pin, p_family:f});
+    if(res && res.ok){
+      const m = memberOf(SESS.name); if(m) m.family = res.family;
+      saveLocal(); renderAll();
+      toast(res.family ? `Du er med i «${res.family}» 🏡` : 'Du står uten gruppe');
+    }else toast('Fikk ikke lagret gruppa – prøv igjen');
+  }catch(e){ toast('Sjekk nettet og prøv igjen'); }
+}
 async function setMyAvatar(a){
   if(a===SESS.avatar) return;
   try{
@@ -1738,11 +1777,32 @@ function renderPass(){
       html += `<div class="stamp got"><span class="semo">🌍</span><b>Resten av verden</b>
         <span class="mini">${esc(abroad.map(c=>c.name).join(', '))}</span></div>`;
     html += '</div>';
+    // familieligaen: gruppe mot gruppe på samlet antall merker (vises først
+    // når minst to grupper finnes)
+    const famGrupper = new Map();
+    BOARD.members.forEach(m=>{
+      if(!m.family) return;
+      if(!famGrupper.has(m.family)) famGrupper.set(m.family, []);
+      famGrupper.get(m.family).push(m);
+    });
+    if(famGrupper.size>=2){
+      const rader = [...famGrupper.entries()].map(([f, medl])=>({
+        f, medl, sum: medl.reduce((a,m)=>a+earnedBadgesFor(m.name).length, 0)
+      })).sort((a,b)=>b.sum-a.sum || a.f.localeCompare(b.f,'no'));
+      const nivo = [...new Set(rader.map(r=>r.sum))];
+      html += `<div class="fordeg-h">🏡 Familieligaen</div>` + rader.map(r=>{
+        const medal = ['🥇','🥈','🥉'][nivo.indexOf(r.sum)] || '🏅';
+        return `<div class="rline"><span class="ava">${medal}</span><span class="who">${esc(r.f)}</span>
+          <span class="mini" style="margin-left:6px">${r.medl.length} ${r.medl.length===1?'smaker':'smakere'}</span>
+          <span class="sc" style="font-size:16px; font-weight:800">${r.sum} merker</span></div>`;
+      }).join('');
+    }
     const others = BOARD.members.filter(m=>m.name!==SESS.name);
     if(others.length){
       html += `<div class="fordeg-h">👨‍👩‍👧‍👦 Familiens stempler</div>` + others.map(m=>{
         const n = memberStampFeatures(m.name).length;
         return `<div class="rline"><span class="ava">${esc(m.avatar)}</span><span class="who">${esc(m.name)}</span>
+          ${m.family ? `<span class="mini" style="margin-left:6px">🏡 ${esc(m.family)}</span>` : ''}
           <span class="sc" style="font-size:16px; font-weight:800">${n} ${n===1?'stempel':'stempler'} 🧀</span></div>`;
       }).join('');
     }
