@@ -92,7 +92,8 @@
   .cheese .meta{display:flex; gap:6px; align-items:center; margin:4px 0 10px; flex-wrap:wrap;}
   .typechip{background:var(--soft); border-radius:999px; padding:3px 10px; font-size:12.5px; font-weight:700; color:var(--muted);}
   .badge-new{background:var(--lav); color:#fff; border-radius:999px; padding:3px 10px; font-size:12.5px; font-weight:800;}
-  .emorow{display:flex; gap:6px;}
+  .emorow{display:flex; gap:6px; align-items:center;}
+  .emorow .slab{font-size:16px; padding:0 3px;}
   .emorow button{flex:1; font-size:28px; padding:9px 0 7px; background:var(--soft); border-radius:14px; line-height:1;}
   .emorow button.on{background:var(--ochre-soft); box-shadow:inset 0 0 0 3px var(--ochre); transform:scale(1.06);}
   .emorow.big button{font-size:40px; padding:13px 0 10px;}
@@ -1064,7 +1065,7 @@ function renderWall(){
           <span class="typechip">av ${esc(c.added_by)}</span>
           ${!mine ? '<span class="badge-new">du har ikke smakt!</span>':''}
         </div>
-        <div class="emorow">${emos}</div>
+        <div class="emorow" title="Din dom — hvor god smaker den?"><span class="slab">👅</span>${emos}</div>
         <div class="stinkrow" title="Stinkometeret — hvor mye lukter den?"><span class="slab">💨</span>${stinks}</div>
       </div>`;
     wall.appendChild(card);
@@ -1455,6 +1456,34 @@ const BADGES = [
   {id:'folelser',   emo:'🎭', name:'Hele følelsesregisteret', how:'Du har brukt alle de fem dommene, fra 🤢 til 🤩!', secret:true, test:s=>s.allScores},
   {id:'stinkskala', emo:'🌈', name:'Hele stinkskalaen',       how:'Du har brukt alle de fem lukttrinnene, fra 🌸 til 💩!', secret:true, test:s=>s.allStinks},
   {id:'frokost',    emo:'🥐', name:'FrokOST',                 how:'Du har dømt en ost før klokka 08 om morgenen!', secret:true, test:s=>s.frokost},
+  // skjulte merker: vises IKKE i passet før de er klart — bare en teaser-boks
+  // forteller hvor mange som gjemmer seg. Alle er ekte klarbare fra tavledata.
+  {id:'aesj3',    emo:'🤮', name:'Æsjeekspert',      how:'Du har gitt 🤢 til tre oster!',                          hidden:true, test:s=>s.n1>=3},
+  {id:'sol5',     emo:'☀️', name:'Solskinnsdommer',  how:'Du har gitt 🤩 til fem oster!',                          hidden:true, test:s=>s.n5>=5},
+  {id:'midt5',    emo:'🎯', name:'Midt på treet',    how:'Du har gitt 🙂 til fem oster!',                          hidden:true, test:s=>s.n3>=5},
+  {id:'poet',     emo:'✍️', name:'Ostepoet',         how:'Du har skrevet fem smaksnotater!',                       hidden:true, test:s=>s.notater>=5},
+  {id:'roman',    emo:'📜', name:'Osteroman',        how:'Du har skrevet et smaksnotat på over 80 tegn!',          hidden:true, test:s=>s.langNotat},
+  {id:'jeger5',   emo:'🔎', name:'Ostejeger',        how:'Du har lagt fem oster på tavla!',                        hidden:true, test:s=>s.lagtTil>=5},
+  {id:'foto',     emo:'📸', name:'Ostepaparazzi',    how:'Du har lagt til en ost med eget bilde!',                 hidden:true, test:s=>s.medBilde},
+  {id:'elsket',   emo:'💖', name:'Godt valg!',       how:'En ost du la til fikk 🤩 av en annen!',                  hidden:true, test:s=>s.elsket},
+  {id:'blomst',   emo:'🌷', name:'Blomsternese',     how:'Du fant en ost som lukter blomster! 🌸',                 hidden:true, test:s=>s.stink1},
+  {id:'sokk3',    emo:'🧦', name:'Sokkesamler',      how:'Du har gitt 🧦 til tre oster!',                          hidden:true, test:s=>s.stink4>=3},
+  {id:'rumpe3',   emo:'🚽', name:'Rumpejeger',       how:'Du har gitt 💩 til tre forskjellige oster!',             hidden:true, test:s=>s.stink5>=3},
+  {id:'sau5',     emo:'🐑', name:'Sauehviskeren',    how:'Du har dømt fem saueoster!',                             hidden:true, test:s=>s.sauer>=5},
+  {id:'ku15',     emo:'🐮', name:'Kubestevenn',      how:'Du har dømt femten kumelksoster!',                       hidden:true, test:s=>s.kuer>=15},
+  {id:'myk3',     emo:'🫠', name:'Mykis',            how:'Du har dømt tre myke oster!',                            hidden:true, test:s=>s.myke>=3},
+  {id:'fast5',    emo:'🧱', name:'Hard kjerne',      how:'Du har dømt fem faste oster!',                           hidden:true, test:s=>s.faste>=5},
+  {id:'fersk1',   emo:'🌱', name:'Fersking',         how:'Du har dømt en fersk ost!',                              hidden:true, test:s=>s.ferske>=1},
+  {id:'natt',     emo:'🦉', name:'Natteravn',        how:'Du har dømt en ost etter klokka 22!',                    hidden:true, test:s=>s.natt},
+  {id:'sondag',   emo:'🥞', name:'Søndagsost',       how:'Du har dømt en ost på en søndag!',                       hidden:true, test:s=>s.sondag},
+  {id:'festival', emo:'🎪', name:'Ostefestival',     how:'Du har dømt tre oster på én og samme dag!',              hidden:true, test:s=>s.festival},
+  {id:'paris',    emo:'🗼', name:'Pariserhjulet',    how:'Du har stempel fra Île-de-France!',                      hidden:true, test:s=>s.harParis},
+  {id:'korsika',  emo:'🏝️', name:'Øyhopperen',       how:'Du har stempel fra Korsika!',                            hidden:true, test:s=>s.harKorsika},
+  {id:'helefr',   emo:'🇫🇷', name:'HELE Frankrike!',  how:'Du har stempler fra alle 13 regionene!! Utrolig!',       hidden:true, test:s=>s.regions>=13},
+  {id:'enige',    emo:'🤝', name:'Sjelevenner',      how:'Du og en annen har gitt samme dom til ti oster!',        hidden:true, test:s=>s.enige>=10},
+  {id:'mot',      emo:'🐟', name:'Motstrøms',        how:'Du ga 🤢 der noen andre ga 🤩!',                         hidden:true, test:s=>s.motstroms},
+  {id:'tvilling', emo:'👯', name:'Smakstvilling',    how:'Du og et familiemedlem har dømt ti av de samme ostene!', hidden:true, test:s=>s.tvilling>=10},
+  {id:'pioner',   emo:'🥇', name:'Førstesmaker',     how:'Du dømte en ost først – og minst to fulgte etter!',      hidden:true, test:s=>s.pioner},
 ];
 
 /* regioner der medlemmet har dømt en ost med koordinater — [{f, oster}] */
@@ -1471,30 +1500,75 @@ function badgeStats(){
   const mine = BOARD.ratings.filter(r=>r.member===SESS.name);
   const cheeses = mine.map(r=>BOARD.cheeses.find(c=>c.id===r.cheese_id)).filter(Boolean);
   const milks = new Set(), texs = new Set();
-  let abroad = false, geiter = 0;
+  let abroad = false, geiter = 0, sauer = 0, kuer = 0, myke = 0, faste = 0, ferske = 0;
   cheeses.forEach(c=>{
     const {milk, tex} = parseType(c.type);
     if(milk) milks.add(milk);
     if(milk==='Geit') geiter++;
+    if(milk==='Sau') sauer++;
+    if(milk==='Ku') kuer++;
     if(tex) texs.add(tex);
+    if(tex==='Myk') myke++;
+    if(tex==='Fast') faste++;
+    if(tex==='Fersk') ferske++;
     if(hasCoords(c) && !inFrance(+c.lat, +c.lng)) abroad = true;
   });
   const brave = mine.some(r=>r.score>=4 && BOARD.ratings.some(o=>
     o.cheese_id===r.cheese_id && o.member!==SESS.name && o.score===1));
   const myStk = (BOARD.stinks||[]).filter(s=>s.member===SESS.name);
+  const lagtTil = BOARD.cheeses.filter(c=>c.added_by===SESS.name);
+  // dommer per dag + sosiale statistikker (enighet, motstrøms, tvilling, pioner)
+  const perDag = {};
+  mine.forEach(r=>{ const d = String(r.updated_at).slice(0,10); perDag[d] = (perDag[d]||0)+1; });
+  let enige = 0, motstroms = false;
+  mine.forEach(r=>{
+    const andre = BOARD.ratings.filter(o=>o.cheese_id===r.cheese_id && o.member!==SESS.name);
+    if(andre.some(o=>o.score===r.score)) enige++;
+    if(r.score===1 && andre.some(o=>o.score===5)) motstroms = true;
+  });
+  const mineIds = new Set(mine.map(r=>r.cheese_id));
+  let tvilling = 0;
+  BOARD.members.forEach(m=>{
+    if(m.name===SESS.name) return;
+    const felles = BOARD.ratings.filter(o=>o.member===m.name && mineIds.has(o.cheese_id)).length;
+    if(felles>tvilling) tvilling = felles;
+  });
+  const pioner = mine.some(r=>{
+    const alle = BOARD.ratings.filter(o=>o.cheese_id===r.cheese_id);
+    return alle.length>=3 && alle.every(o=>o.member===SESS.name || o.updated_at>r.updated_at);
+  });
+  const stampF = memberStampFeatures(SESS.name);
+  const regionNavn = new Set(stampF.map(x=>x.f.properties.nom));
   return {
     myRatings: mine.length,
     milks: ['Ku','Geit','Sau'].filter(m=>milks.has(m)).length,
-    geiter,
+    geiter, sauer, kuer, myke, faste, ferske,
     blue: texs.has('Blå'),
     brave,
     rumpe: myStk.some(s=>s.stink===5),
     myStinks: myStk.length,
     abroad,
-    regions: memberStampFeatures(SESS.name).length,
+    regions: stampF.length,
     allScores: new Set(mine.map(r=>r.score)).size===5,
     allStinks: new Set(myStk.map(s=>s.stink)).size===5,
     frokost: mine.some(r=>new Date(r.updated_at).getHours()<8),
+    n1: mine.filter(r=>r.score===1).length,
+    n3: mine.filter(r=>r.score===3).length,
+    n5: mine.filter(r=>r.score===5).length,
+    notater: mine.filter(r=>r.note && r.note.trim()).length,
+    langNotat: mine.some(r=>(r.note||'').length>=80),
+    lagtTil: lagtTil.length,
+    medBilde: lagtTil.some(c=>c.photo),
+    elsket: lagtTil.some(c=>BOARD.ratings.some(r=>r.cheese_id===c.id && r.member!==SESS.name && r.score===5)),
+    stink1: myStk.some(s=>s.stink===1),
+    stink4: myStk.filter(s=>s.stink===4).length,
+    stink5: new Set(myStk.filter(s=>s.stink===5).map(s=>s.cheese_id)).size,
+    natt: mine.some(r=>new Date(r.updated_at).getHours()>=22),
+    sondag: mine.some(r=>new Date(r.updated_at).getDay()===0),
+    festival: Object.values(perDag).some(n=>n>=3),
+    enige, motstroms, tvilling, pioner,
+    harParis: regionNavn.has('Île-de-France'),
+    harKorsika: regionNavn.has('Corse'),
   };
 }
 function earnedBadges(){
@@ -1544,16 +1618,20 @@ function renderPass(){
   let html = `<div class="passhead"><span class="ava">${esc(SESS.avatar)}</span><div>
     <b style="font-size:19px">${esc(SESS.name)} sitt ostepass</b>
     <div class="mini">${stats.myRatings} ${stats.myRatings===1?'ost':'oster'} dømt · ${earned.size} av ${BADGES.length} merker</div></div></div>`;
+  const skjulte = BADGES.filter(b=>b.hidden && !earned.has(b.id)).length;
   html += `<div class="fordeg-h">🏅 Merker</div><div class="badges">`
     + BADGES.map(b=>{
       const got = earned.has(b.id);
+      if(b.hidden && !got) return '';                     // helt usynlig til det klares
       if(b.secret && !got)
         return `<div class="badge off secret"><span class="bemo">❓</span><b>Hemmelig merke</b>
           <span class="mini">Hva kan dette være…? 🤫</span></div>`;
       return `<div class="badge ${got?'':'off'}">
         <span class="bemo">${b.emo}</span><b>${b.name}</b>
-        <span class="mini">${got ? (b.secret ? esc(b.how)+' 🎉' : 'Klart! 🎉') : esc(b.how)}</span></div>`;
+        <span class="mini">${got ? ((b.secret||b.hidden) ? esc(b.how)+' 🎉' : 'Klart! 🎉') : esc(b.how)}</span></div>`;
     }).join('')
+    + (skjulte ? `<div class="badge off secret"><span class="bemo">🤫</span><b>${skjulte} skjulte merker</b>
+        <span class="mini">Ingen hint! Smak, lukt, skriv og utforsk …</span></div>` : '')
     + '</div>';
   html += `<div class="fordeg-h">🛂 Stempler fra Frankrike</div>`;
   if(!regionsGeo){
