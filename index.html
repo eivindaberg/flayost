@@ -1536,6 +1536,19 @@ const BADGES = [
   {id:'norge',    emo:'🇳🇴', name:'Kortreist',        how:'Du har dømt en norsk ost – hjemme best!',                hidden:true, test:s=>s.land.has('Norge')},
   {id:'turist',   emo:'🛫', name:'Osteturist',       how:'Du har dømt oster fra tre land utenfor Frankrike!',      hidden:true, test:s=>s.land.size>=3},
   {id:'verden5',  emo:'🌐', name:'Verdensmester i ost', how:'Du har dømt oster fra FEM land utenfor Frankrike!',   hidden:true, test:s=>s.land.size>=5},
+  // variant-, avstands- og utholdenhetsmerker (skjulte)
+  {id:'vari2',    emo:'🔬', name:'Finsmaker',        how:'Du har dømt to varianter av samme ost!',                 hidden:true, test:s=>s.maxVar>=2},
+  {id:'vari3',    emo:'🧪', name:'Vertikalsmaking',  how:'Du har dømt TRE varianter av samme ost!',                hidden:true, test:s=>s.maxVar>=3},
+  {id:'parmesan', emo:'👨‍🏫', name:'Parmesanprofessor', how:'Du har dømt flere forskjellige parmesaner!',            hidden:true, test:s=>s.parmeser>=2},
+  {id:'cheddar',  emo:'🧡', name:'Cheddargjengen',   how:'Du har dømt flere forskjellige cheddarer!',              hidden:true, test:s=>s.cheddarer>=2},
+  {id:'kvart',    emo:'🎂', name:'Kvarthundre',      how:'Du har dømt 25 oster!',                                  hidden:true, test:s=>s.myRatings>=25},
+  {id:'hundre',   emo:'💯', name:'Hundreklubben',    how:'Du har dømt HUNDRE oster!!',                             hidden:true, test:s=>s.myRatings>=100},
+  {id:'dager5',   emo:'🗓️', name:'Ukesmakeren',      how:'Du har dømt oster på fem forskjellige dager!',           hidden:true, test:s=>s.dager>=5},
+  {id:'dager10',  emo:'📅', name:'Stamgjest',        how:'Du har dømt oster på ti forskjellige dager!',            hidden:true, test:s=>s.dager>=10},
+  {id:'langt',    emo:'🧭', name:'Langveisfarer',    how:'Du har dømt en ost lagd over 1000 km fra Flayosc!',      hidden:true, test:s=>s.far1000},
+  {id:'naert',    emo:'🏡', name:'Nabolagsost',      how:'Du har dømt en ost lagd under 100 km fra Flayosc!',      hidden:true, test:s=>s.near100},
+  {id:'modig3',   emo:'🦸', name:'Superheltsmaker',  how:'Tre ganger modig – 😋 der andre sa 🤢!',                 hidden:true, test:s=>s.brave3>=3},
+  {id:'kjaerlighet', emo:'💘', name:'Stinkelsker',   how:'Du ga 🤩 og 💩 til samme ost – ekte kjærlighet!',        hidden:true, test:s=>s.stinkelsker},
 ];
 
 /* regioner der medlemmet har dømt en ost med koordinater — [{f, oster}] */
@@ -1592,6 +1605,28 @@ function badgeStats(navn = SESS.name){
   });
   const stampF = memberStampFeatures(navn);
   const regionNavn = new Set(stampF.map(x=>x.f.properties.nom));
+  // varianter: mine oster gruppert på grunnavn («Cheddar (18 mnd)» → cheddar)
+  const varGrupper = {};
+  cheeses.forEach(c=>{
+    const b = fold(splitVariant(c.name).base);
+    if(!b) return;
+    (varGrupper[b] = varGrupper[b] || new Set()).add(fold(c.name));
+  });
+  let maxVar = 0;
+  Object.values(varGrupper).forEach(s=>{ if(s.size>maxVar) maxVar = s.size; });
+  const parmeser = new Set(cheeses.filter(c=>fold(c.name).includes('parm')).map(c=>fold(c.name))).size;
+  const cheddarer = new Set(cheeses.filter(c=>fold(c.name).includes('cheddar')).map(c=>fold(c.name))).size;
+  // avstand fra hjemmebasen i Flayosc (43.5578, 6.3903)
+  let far1000 = false, near100 = false;
+  cheeses.forEach(c=>{
+    if(!hasCoords(c)) return;
+    const km = kmDist(43.5578, 6.3903, +c.lat, +c.lng);
+    if(km>1000) far1000 = true;
+    if(km<100) near100 = true;
+  });
+  const brave3 = new Set(mine.filter(r=>r.score>=4 && BOARD.ratings.some(o=>
+    o.cheese_id===r.cheese_id && o.member!==navn && o.score===1)).map(r=>r.cheese_id)).size;
+  const stinkelsker = mine.some(r=>r.score===5 && myStk.some(s=>s.cheese_id===r.cheese_id && s.stink===5));
   return {
     myRatings: mine.length,
     milks: ['Ku','Geit','Sau'].filter(m=>milks.has(m)).length,
@@ -1620,6 +1655,8 @@ function badgeStats(navn = SESS.name){
     sondag: mine.some(r=>new Date(r.updated_at).getDay()===0),
     festival: Object.values(perDag).some(n=>n>=3),
     enige, motstroms, tvilling, pioner, land,
+    maxVar, parmeser, cheddarer, far1000, near100, brave3, stinkelsker,
+    dager: Object.keys(perDag).length,
     harParis: regionNavn.has('Île-de-France'),
     harKorsika: regionNavn.has('Corse'),
   };
