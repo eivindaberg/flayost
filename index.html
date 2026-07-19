@@ -349,10 +349,10 @@
              oninput="onAddNameInput()" onfocus="renderSuggestions()" onblur="setTimeout(hideSuggestions,200)">
       <div class="suglist hidden" id="sugList"></div>
     </div>
-    <button type="button" class="ghost small" id="variantToggle" onclick="toggleVariant()">+ produsent / lagringstid</button>
+    <button type="button" class="ghost small" id="variantToggle" onclick="toggleVariant()">+ utgave (produsent, lagring, vellagret …)</button>
     <div class="hidden" id="variantWrap">
-      <label class="blk">Produsent / lagringstid <span class="mini">(så Cheddar 12 mnd og 18 mnd kan dømmes hver for seg)</span></label>
-      <input type="text" id="addVariant" maxlength="40" placeholder="F.eks. Westcombe · 18 mnd" autocomplete="off">
+      <label class="blk">Hvilken utgave? <span class="mini">(så vanlig og vellagret Jarlsberg kan dømmes hver for seg)</span></label>
+      <input type="text" id="addVariant" maxlength="40" placeholder="F.eks. vellagret · Tine, eller 18 mnd · Westcombe" autocomplete="off">
     </div>
     <div class="originline hidden" id="originLine"></div>
     <div id="originManual">
