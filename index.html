@@ -168,6 +168,8 @@
   .originline button{background:none; padding:4px 10px; font-size:16px; font-weight:900; color:var(--muted);}
   #addPreview{width:100%; border-radius:16px; max-height:240px; object-fit:cover; margin-top:8px;}
   .scorehint{text-align:center; font-weight:800; min-height:26px; margin-top:8px; color:var(--olive); font-size:17px;}
+  .scorehint .unx{background:none; border:none; color:var(--muted); font-size:13px; font-weight:800; padding:2px 7px; margin-left:4px; border-radius:999px; opacity:.65; cursor:pointer;}
+  .scorehint .unx:active{background:var(--soft); opacity:1;}
 
   /* ---------- stinkometer 💨 ---------- */
   .stinkrow{display:flex; gap:5px; align-items:center; margin-top:7px;}
@@ -321,18 +323,15 @@
     <label class="blk">Din dom:</label>
     <div class="emorow big" id="dEmoRow"></div>
     <div class="scorehint" id="dHint"></div>
-    <button class="ghost small hidden" id="dUnrate" style="display:block; margin:0 auto;" onclick="unrate(false)">✕ Angre dommen min</button>
     <label class="blk">Stinkometeret 💨 <span class="mini">(hvor mye lukter den?)</span></label>
     <div class="emorow stink" id="dStinkRow"></div>
     <div class="scorehint" id="dStinkHint"></div>
-    <button class="ghost small hidden" id="dUnstink" style="display:block; margin:0 auto;" onclick="unrate(true)">✕ Angre lukta mi</button>
     <label class="blk">Smaksnotat <span class="mini">(valgfritt)</span></label>
     <div class="flex">
       <input type="text" id="dNote" maxlength="120" placeholder="F.eks. «smaker som sokker, men på en god måte»">
       <button class="ghost" onclick="saveNote()">Lagre</button>
     </div>
     <div class="rlist" id="dRatings"></div>
-    <button class="ghost" style="width:100%; margin-top:12px;" onclick="newVariantFromDetail()">🧀 Smakt en annen utgave? Legg inn som variant</button>
     <button class="danger hidden" id="dDelete" style="width:100%; margin-top:14px;" onclick="deleteCheese()">🗑 Slett osten (kun sjefene 👑)</button>
   </div>
 </div>
@@ -1304,7 +1303,7 @@ async function rate(cheeseId, score, ev){
   if(existing){ existing.score = score; existing.updated_at = new Date().toISOString(); }
   else BOARD.ratings.push({cheese_id:cheeseId, member:SESS.name, score, note:'', updated_at:new Date().toISOString()});
   saveLocal(); renderAll();
-  if($('overlay-detail') && detailId===cheeseId) $('dHint').textContent = EMO[score]+' '+EMO_WORD[score];
+  if($('overlay-detail') && detailId===cheeseId) $('dHint').innerHTML = esc(EMO[score]+' '+EMO_WORD[score]) + hintUnrate(false);
   try{
     const res = await rpc('flayost_rate', {p_name:SESS.name, p_pin:SESS.pin, p_cheese_id:cheeseId, p_score:score, p_note:note});
     if(!res || !res.ok) throw new Error(res && res.error);
@@ -1325,7 +1324,7 @@ async function rateStink(cheeseId, level, ev){
   if(existing){ existing.stink = level; existing.updated_at = new Date().toISOString(); }
   else BOARD.stinks.push({cheese_id:cheeseId, member:SESS.name, stink:level, updated_at:new Date().toISOString()});
   saveLocal(); renderAll();
-  if(detailId===cheeseId) $('dStinkHint').textContent = STINK[level]+' '+STINK_WORD[level];
+  if(detailId===cheeseId) $('dStinkHint').innerHTML = esc(STINK[level]+' '+STINK_WORD[level]) + hintUnrate(true);
   try{
     const res = await rpc('flayost_stink', {p_name:SESS.name, p_pin:SESS.pin, p_cheese_id:cheeseId, p_stink:level});
     if(!res || !res.ok) throw new Error(res && res.error);
@@ -1843,6 +1842,10 @@ async function editOrigin(){
 }
 /* Angre egen dom/lukt: osten går tilbake til «ikke smakt» for deg.
    Fjerner også fra offline-køen så den ikke gjenoppstår ved synk. */
+/* liten ✕ inne i hint-linja — angre uten å ta plass */
+function hintUnrate(stink){
+  return ` <button class="unx" title="${stink?'Angre lukta mi':'Angre dommen min'}" onclick="unrate(${stink})">✕</button>`;
+}
 async function unrate(stink){
   const cid = detailId;
   if(!cid) return;
@@ -1890,7 +1893,8 @@ function renderDetail(){
   const dnv = splitVariant(c.name);
   $('dName').innerHTML = esc(dnv.base) + (dnv.vari ? `<span class="vari">${esc(dnv.vari)}</span>` : '');
   $('dMeta').innerHTML = esc((c.type? c.type+' · ':'') + (c.origin? '📍 '+c.origin+' · ':'') + 'lagt til av ' + c.added_by)
-    + ` &nbsp;<button class="ghost small" onclick="editOrigin()">${c.origin ? '✏️ endre sted' : '📍 legg til sted'}</button>`;
+    + ` &nbsp;<button class="ghost small" onclick="editOrigin()">${c.origin ? '✏️ endre sted' : '📍 legg til sted'}</button>`
+    + ` <button class="ghost small" onclick="newVariantFromDetail()" title="Smakt en annen produsent eller lagring av denne? Legg den inn som egen ost.">🧀 annen utgave?</button>`;
   const wimg = c.photo ? null : webImgFor(c.name);
   $('dPhotoWrap').innerHTML = c.photo
     ? `<img class="dphoto" src="${c.photo}" alt="">`
@@ -1904,14 +1908,12 @@ function renderDetail(){
   $('dEmoRow').innerHTML = [1,2,3,4,5].map(s=>
     `<button class="${mine && mine.score===s?'on':''}" onclick="rate('${c.id}',${s},event)">${EMO[s]}</button>`
   ).join('');
-  $('dHint').textContent = mine ? EMO[mine.score]+' '+EMO_WORD[mine.score] : 'Trykk på en smiley!';
-  $('dUnrate').classList.toggle('hidden', !mine);
+  $('dHint').innerHTML = mine ? esc(EMO[mine.score]+' '+EMO_WORD[mine.score]) + hintUnrate(false) : 'Trykk på en smiley!';
   const mstk = myStink(c.id);
   $('dStinkRow').innerHTML = [1,2,3,4,5].map(s=>
     `<button class="${mstk && mstk.stink===s?'on':''}" onclick="rateStink('${c.id}',${s},event)">${STINK[s]}</button>`
   ).join('');
-  $('dStinkHint').textContent = mstk ? STINK[mstk.stink]+' '+STINK_WORD[mstk.stink] : 'Lukt på osten og trykk!';
-  $('dUnstink').classList.toggle('hidden', !mstk);
+  $('dStinkHint').innerHTML = mstk ? esc(STINK[mstk.stink]+' '+STINK_WORD[mstk.stink]) + hintUnrate(true) : 'Lukt på osten og trykk!';
   $('dNote').value = mine ? (mine.note||'') : '';
   const list = $('dRatings'); list.innerHTML='';
   const rs = ratingsFor(c.id).sort((a,b)=>b.score-a.score);

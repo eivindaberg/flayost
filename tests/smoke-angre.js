@@ -41,14 +41,16 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log(ok ? '  ✅' : '
       ratings: [{ cheese_id: 'c1', member: 'E2E Fake', score: 4, note: '', updated_at: '2026-07-19T12:00:00' }],
       stinks: [] };
     enterWall(); openDetail('c1');
-    const f1 = { unrate: !document.getElementById('dUnrate').classList.contains('hidden'),
-                 unstink: !document.getElementById('dUnstink').classList.contains('hidden') };
+    const f1 = { unrate: !!document.querySelector('#dHint .unx'),
+                 unstink: !!document.querySelector('#dStinkHint .unx'),
+                 variHint: document.getElementById('dMeta').textContent.includes('annen utgave') };
     await unrate(false);
-    const f2 = { rating: myRating('c1'), unrateHidden: document.getElementById('dUnrate').classList.contains('hidden') };
+    const f2 = { rating: myRating('c1'), unx: !!document.querySelector('#dHint .unx') };
     return { f1, f2 };
   });
-  check('✕-knapp vises for dom, ikke for lukt', ui.f1.unrate === true && ui.f1.unstink === false, JSON.stringify(ui.f1));
-  check('angre fjerner dommen lokalt og skjuler knappen', !ui.f2.rating && ui.f2.unrateHidden);
+  check('subtil ✕ i hintlinja for dom, ikke for lukt', ui.f1.unrate === true && ui.f1.unstink === false, JSON.stringify(ui.f1));
+  check('«annen utgave?» ligger i metalinja under tittelen', ui.f1.variHint);
+  check('angre fjerner dommen lokalt og ✕-en forsvinner', !ui.f2.rating && !ui.f2.unx);
 
   /* 3. variantknappen forhåndsutfyller Ny ost */
   const vari = await p.evaluate(() => {
