@@ -160,6 +160,31 @@
   #addPreview{width:100%; border-radius:16px; max-height:240px; object-fit:cover; margin-top:8px;}
   .scorehint{text-align:center; font-weight:800; min-height:26px; margin-top:8px; color:var(--olive); font-size:17px;}
 
+  /* ---------- stinkometer 💨 ---------- */
+  .stinkrow{display:flex; gap:5px; align-items:center; margin-top:7px;}
+  .stinkrow .slab{font-size:16px; padding:0 3px;}
+  .stinkrow button{flex:1; font-size:20px; padding:6px 0 4px; background:var(--soft); border-radius:11px; line-height:1;}
+  .stinkrow button.on{background:#eaf0dc; box-shadow:inset 0 0 0 3px var(--olive); transform:scale(1.06);}
+  .emorow.stink button{font-size:30px; padding:10px 0 8px;}
+
+  /* ---------- ostepasset 🛂 ---------- */
+  .passhead{display:flex; gap:12px; align-items:center; background:var(--card); border-radius:18px; padding:14px 16px; box-shadow:0 8px 24px rgba(80,50,10,.13);}
+  .passhead .ava{font-size:38px;}
+  .badges,.stamps{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px;}
+  .badge{background:var(--card); border-radius:16px; padding:12px 10px; text-align:center; box-shadow:0 8px 24px rgba(80,50,10,.13);}
+  .badge .bemo{font-size:34px; display:block; margin-bottom:4px;}
+  .badge b{display:block; font-size:14px;}
+  .badge .mini{font-size:11.5px; display:block; margin-top:2px;}
+  .badge.off{opacity:.5; filter:grayscale(1); box-shadow:none; background:rgba(255,253,247,.6);}
+  .stamp{background:rgba(255,253,247,.6); border:3px dashed var(--line); border-radius:14px; padding:12px 10px; text-align:center; color:var(--muted);}
+  .stamp b{display:block; font-size:13.5px;}
+  .stamp .semo{font-size:30px; display:block; margin-bottom:2px;}
+  .stamp .mini{font-size:11.5px;}
+  .stamp.got{border-color:var(--ochre); border-style:solid; color:var(--ink); background:var(--ochre-soft); transform:rotate(-2deg); box-shadow:0 8px 24px rgba(80,50,10,.13);}
+  .stamp.got:nth-child(even){transform:rotate(2deg);}
+  .passbar{height:12px; background:var(--soft); border-radius:999px; overflow:hidden; margin:8px 0 14px;}
+  .passbar i{display:block; height:100%; background:linear-gradient(90deg,#ecc27c,var(--ochre)); border-radius:999px;}
+
   /* toast + confetti */
   #toast{position:fixed; left:50%; transform:translateX(-50%); bottom:96px; background:var(--ink); color:#fff; padding:12px 20px; border-radius:999px; font-weight:700; font-size:15px; z-index:99; opacity:0; transition:opacity .25s; pointer-events:none; max-width:88vw; text-align:center;}
   #toast.show{opacity:1;}
@@ -242,6 +267,7 @@
       <button class="tab" id="tab-usmakt" onclick="setTab('usmakt')">👅 Ikke smakt</button>
       <button class="tab" id="tab-kart" onclick="setTab('kart')">🗺️ Kart</button>
       <button class="tab" id="tab-fordeg" onclick="setTab('fordeg')">✨ For deg</button>
+      <button class="tab" id="tab-pass" onclick="setTab('pass')">🛂 Pass</button>
     </div>
     <div class="wall" id="wall"></div>
     <div id="kart-wrap" class="hidden">
@@ -258,6 +284,7 @@
       <p class="mini hidden" id="kart-missing"></p>
     </div>
     <div id="fordeg-wrap" class="hidden"><div id="fordeg"></div></div>
+    <div id="pass-wrap" class="hidden"><div id="pass"></div></div>
     <button class="fab" onclick="openAdd()">➕ Ny ost</button>
   </div>
 </div>
@@ -275,6 +302,9 @@
     <label class="blk">Din dom:</label>
     <div class="emorow big" id="dEmoRow"></div>
     <div class="scorehint" id="dHint"></div>
+    <label class="blk">Stinkometeret 💨 <span class="mini">(hvor mye lukter den?)</span></label>
+    <div class="emorow stink" id="dStinkRow"></div>
+    <div class="scorehint" id="dStinkHint"></div>
     <label class="blk">Smaksnotat <span class="mini">(valgfritt)</span></label>
     <div class="flex">
       <input type="text" id="dNote" maxlength="120" placeholder="F.eks. «smaker som sokker, men på en god måte»">
@@ -331,9 +361,12 @@ try{ supa = window.supabase.createClient(SB_URL, SB_KEY); }catch(e){ supa = null
 
 const $ = id => document.getElementById(id);
 const LS_SESS = 'flayost_session', LS_BOARD = 'flayost_board', LS_PENDING = 'flayost_pending';
+const LS_PENDING_STINK = 'flayost_pending_stink';
 
 const EMO = {1:'🤢', 2:'😕', 3:'🙂', 4:'😋', 5:'🤩'};
 const EMO_WORD = {1:'Æsj!', 2:'Nja…', 3:'Helt grei', 4:'Nam!', 5:'BESTE OSTEN!'};
+const STINK = {1:'🌸', 2:'🍃', 3:'👃', 4:'🧦', 5:'💩'};
+const STINK_WORD = {1:'Lukter blomster!', 2:'Nesten ingen lukt', 3:'Lukter ost', 4:'Gamle sokker…', 5:'RUMPE!!! 🍑'};
 const AVATARS = ['🦊','🐰','🦁','🐸','🐼','🦄','🐙','🦖','🐶','🐱','🐭','🐨','🐷','🐵','🦉','🐢','🦋','🐞','🐳','🦩','🌻','🍓','⚽','🚀','🎨','🎸','👑','🥐'];
 const MILKS = [['🐄','Ku'],['🐐','Geit'],['🐑','Sau'],['🤔','Vet ikke']];
 const TEXTURES = ['Myk','Fast','Blå','Fersk'];
@@ -443,7 +476,7 @@ const CHEESES_FR = [
 ];
 
 let SESS = null;                                   // {name, pin, avatar, is_kid}
-let BOARD = {members:[], cheeses:[], ratings:[]};  // delt tavle (cache i localStorage)
+let BOARD = {members:[], cheeses:[], ratings:[], stinks:[]};  // delt tavle (cache i localStorage)
 let TAB = 'beste';
 let pinBuf = '', pinMode = null, pinTarget = null; // 'login' | 'create'
 let newAva = AVATARS[0], newIsKid = true;
@@ -470,11 +503,11 @@ function toast(msg){
   clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove('show'), 2600);
 }
 function esc(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function confetti(x, y, emoji){
+function confetti(x, y, emoji, alt){
   for(let i=0;i<10;i++){
     const c = document.createElement('div');
     c.className = 'confetto';
-    c.textContent = Math.random()<.5 ? emoji : '🧀';
+    c.textContent = Math.random()<.5 ? emoji : (alt||'🧀');
     c.style.left = (x-13)+'px'; c.style.top = (y-13)+'px';
     c.style.setProperty('--dx', (Math.random()*220-110)+'px');
     c.style.setProperty('--dy', (Math.random()*-160-40)+'px');
@@ -491,17 +524,32 @@ function avgOf(id){
   if(!rs.length) return null;
   return rs.reduce((s,r)=>s+r.score,0)/rs.length;
 }
+/* BOARD.stinks kan mangle i gamle localStorage-cacher — derav ||[] */
+function stinksFor(id){ return (BOARD.stinks||[]).filter(s=>s.cheese_id===id); }
+function myStink(id){ return SESS ? (BOARD.stinks||[]).find(s=>s.cheese_id===id && s.member===SESS.name) : null; }
+function avgStink(id){
+  const ss = stinksFor(id);
+  if(!ss.length) return null;
+  return ss.reduce((a,s)=>a+s.stink,0)/ss.length;
+}
 
 /* ---------- kø for dommer som ikke kom fram (dårlig ferie-wifi) ---------- */
 let PENDING = [];   // [{cheese_id, score, note}] — siste dom per ost vinner
+let PENDING_STINK = [];   // [{cheese_id, stink}] — samme prinsipp for stinkometeret
 try{ PENDING = JSON.parse(localStorage.getItem(LS_PENDING)) || []; }catch(e){}
+try{ PENDING_STINK = JSON.parse(localStorage.getItem(LS_PENDING_STINK)) || []; }catch(e){}
 function queuePending(cheese_id, score, note){
   PENDING = PENDING.filter(p=>p.cheese_id!==cheese_id);
   PENDING.push({cheese_id, score, note});
   localStorage.setItem(LS_PENDING, JSON.stringify(PENDING));
 }
+function queuePendingStink(cheese_id, stink){
+  PENDING_STINK = PENDING_STINK.filter(p=>p.cheese_id!==cheese_id);
+  PENDING_STINK.push({cheese_id, stink});
+  localStorage.setItem(LS_PENDING_STINK, JSON.stringify(PENDING_STINK));
+}
 async function flushPending(){
-  if(!SESS || !PENDING.length) return;
+  if(!SESS || (!PENDING.length && !PENDING_STINK.length)) return;
   const still = [];
   for(const p of PENDING){
     try{
@@ -511,6 +559,15 @@ async function flushPending(){
   }
   PENDING = still;
   localStorage.setItem(LS_PENDING, JSON.stringify(PENDING));
+  const stillStink = [];
+  for(const p of PENDING_STINK){
+    try{
+      const res = await rpc('flayost_stink', {p_name:SESS.name, p_pin:SESS.pin, p_cheese_id:p.cheese_id, p_stink:p.stink});
+      if(!res || !res.ok) continue;
+    }catch(e){ stillStink.push(p); }
+  }
+  PENDING_STINK = stillStink;
+  localStorage.setItem(LS_PENDING_STINK, JSON.stringify(PENDING_STINK));
 }
 
 /* ---------- synk av tavla ---------- */
@@ -522,13 +579,19 @@ async function refreshBoard(){
   try{
     const res = await rpc('flayost_get_board', {p_name:SESS.name, p_pin:SESS.pin});
     if(res && res.ok){
-      BOARD = {members:res.members, cheeses:res.cheeses, ratings:res.ratings};
+      BOARD = {members:res.members, cheeses:res.cheeses, ratings:res.ratings, stinks:res.stinks||[]};
       // dommer som fortsatt ligger i kø skal ikke forsvinne fra skjermen
       PENDING.forEach(p=>{
         const r = BOARD.ratings.find(x=>x.cheese_id===p.cheese_id && x.member===SESS.name);
         if(r){ r.score=p.score; r.note=p.note; }
         else if(BOARD.cheeses.some(c=>c.id===p.cheese_id))
           BOARD.ratings.push({cheese_id:p.cheese_id, member:SESS.name, score:p.score, note:p.note, updated_at:new Date().toISOString()});
+      });
+      PENDING_STINK.forEach(p=>{
+        const s = BOARD.stinks.find(x=>x.cheese_id===p.cheese_id && x.member===SESS.name);
+        if(s){ s.stink=p.stink; }
+        else if(BOARD.cheeses.some(c=>c.id===p.cheese_id))
+          BOARD.stinks.push({cheese_id:p.cheese_id, member:SESS.name, stink:p.stink, updated_at:new Date().toISOString()});
       });
       saveLocal();
       renderAll();
@@ -660,17 +723,21 @@ function renderAll(){
   $('meName').textContent = SESS.name;
   if(TAB==='kart') renderKart();
   else if(TAB==='fordeg') renderForDeg();
+  else if(TAB==='pass') renderPass();
   else renderWall();
   if(detailId) renderDetail();
+  checkNewBadges();
 }
 function setTab(t){
   TAB = t;
-  ['beste','nyeste','usmakt','kart'].forEach(x=>$('tab-'+x).classList.toggle('on', x===t));
-  $('wall').classList.toggle('hidden', t==='kart' || t==='fordeg');
+  ['beste','nyeste','usmakt','kart','fordeg','pass'].forEach(x=>$('tab-'+x).classList.toggle('on', x===t));
+  $('wall').classList.toggle('hidden', t==='kart' || t==='fordeg' || t==='pass');
   $('kart-wrap').classList.toggle('hidden', t!=='kart');
   $('fordeg-wrap').classList.toggle('hidden', t!=='fordeg');
+  $('pass-wrap').classList.toggle('hidden', t!=='pass');
   if(t==='kart') activateKart();
   else if(t==='fordeg') renderForDeg();
+  else if(t==='pass') renderPass();
   else renderWall();
 }
 function sortedCheeses(){
@@ -713,6 +780,10 @@ function renderWall(){
     const emos = [1,2,3,4,5].map(s=>
       `<button class="${mine && mine.score===s ? 'on':''}" onclick="rate('${c.id}',${s},event)">${EMO[s]}</button>`
     ).join('');
+    const ms = myStink(c.id), as = avgStink(c.id);
+    const stinks = [1,2,3,4,5].map(s=>
+      `<button class="${ms && ms.stink===s ? 'on':''}" onclick="rateStink('${c.id}',${s},event)">${STINK[s]}</button>`
+    ).join('');
     card.innerHTML = `
       ${photo}
       <div class="body">
@@ -723,10 +794,12 @@ function renderWall(){
         <div class="meta">
           ${c.type ? `<span class="typechip">${esc(c.type)}</span>`:''}
           ${c.origin ? `<span class="typechip">📍 ${esc(c.origin)}</span>`:''}
+          ${as!==null ? `<span class="typechip">💨 ${as.toFixed(1)}</span>`:''}
           <span class="typechip">av ${esc(c.added_by)}</span>
           ${!mine ? '<span class="badge-new">du har ikke smakt!</span>':''}
         </div>
         <div class="emorow">${emos}</div>
+        <div class="stinkrow" title="Stinkometeret — hvor mye lukter den?"><span class="slab">💨</span>${stinks}</div>
       </div>`;
     wall.appendChild(card);
   });
@@ -875,7 +948,7 @@ function fitKart(){
   kartMap.fitBounds(L.latLngBounds(pts), {padding:[46,46], maxZoom:9});
   // hold Frankrike-utsnittet bare når alle nålene faktisk er i Frankrike —
   // oster fra f.eks. Norge skal få kartet til å zoome ut, ikke falle utenfor
-  const allInFrance = pts.every(([la,ln]) => la>=41 && la<=51.5 && ln>=-5.5 && ln<=10);
+  const allInFrance = pts.every(([la,ln]) => inFrance(la,ln));
   if(allInFrance && kartMap.getZoom()<6) kartMap.setView([46.6, 2.4], 6);
 }
 function renderKart(){
@@ -944,6 +1017,27 @@ async function rate(cheeseId, score, ev){
     refreshBoard();
   }catch(e){
     queuePending(cheeseId, score, note);
+    toast('Fikk ikke lagret på nett 😬 – prøver igjen automatisk');
+  }
+}
+
+/* ---------- stinkometeret 💨 (5 = RUMPE!) ---------- */
+async function rateStink(cheeseId, level, ev){
+  if(!SESS) return;
+  if(ev) confetti(ev.clientX||innerWidth/2, ev.clientY||innerHeight/2, STINK[level], '💨');
+  if(level===5) toast('💩 RUMPE!!!');
+  if(!BOARD.stinks) BOARD.stinks = [];
+  const existing = BOARD.stinks.find(s=>s.cheese_id===cheeseId && s.member===SESS.name);
+  if(existing){ existing.stink = level; existing.updated_at = new Date().toISOString(); }
+  else BOARD.stinks.push({cheese_id:cheeseId, member:SESS.name, stink:level, updated_at:new Date().toISOString()});
+  saveLocal(); renderAll();
+  if(detailId===cheeseId) $('dStinkHint').textContent = STINK[level]+' '+STINK_WORD[level];
+  try{
+    const res = await rpc('flayost_stink', {p_name:SESS.name, p_pin:SESS.pin, p_cheese_id:cheeseId, p_stink:level});
+    if(!res || !res.ok) throw new Error(res && res.error);
+    refreshBoard();
+  }catch(e){
+    queuePendingStink(cheeseId, level);
     toast('Fikk ikke lagret på nett 😬 – prøver igjen automatisk');
   }
 }
@@ -1067,6 +1161,143 @@ function recAdd(i){
 }
 
 /* =====================================================================
+   🛂 OSTEPASSET — stempler og merker.
+   Alt regnes ut i klienten fra tavla (ingen ny lagring): et regionstempel
+   får du når du har dømt en ost med koordinater i regionen (samme
+   geojson + punkt-i-polygon som varmekartet). Merkene sjekkes ved hver
+   rendring; nye merker feires med konfetti. «Sett»-lista per smaker
+   ligger i localStorage så feiringen bare skjer én gang per enhet.
+   ===================================================================== */
+function inFrance(lat, lng){ return lat>=41 && lat<=51.5 && lng>=-5.5 && lng<=10; }
+
+const BADGES = [
+  {id:'forste',    emo:'🧀',  name:'Første ost',      how:'Døm din aller første ost',                    test:s=>s.myRatings>=1},
+  {id:'fem',       emo:'🖐️', name:'Femkamp',         how:'Døm 5 oster',                                 test:s=>s.myRatings>=5},
+  {id:'ti',        emo:'🔟',  name:'Ostemester',      how:'Døm 10 oster',                                test:s=>s.myRatings>=10},
+  {id:'tjue',      emo:'👑',  name:'Ostekonge',       how:'Døm 20 oster',                                test:s=>s.myRatings>=20},
+  {id:'melk',      emo:'🐄',  name:'Alle melketyper', how:'Smak ost av ku, geit og sau',                 test:s=>s.milks>=3},
+  {id:'bla',       emo:'🫐',  name:'Blåmuggmodig',    how:'Smak en blåmuggost',                          test:s=>s.blue},
+  {id:'modig',     emo:'💪',  name:'Modig',           how:'Gi 😋 eller 🤩 til en ost noen andre ga 🤢',  test:s=>s.brave},
+  {id:'rumpe',     emo:'💩',  name:'RUMPE!',          how:'Gi 5 på stinkometeret',                       test:s=>s.rumpe},
+  {id:'nese',      emo:'👃',  name:'Supernese',       how:'Lukt på 5 oster med stinkometeret',           test:s=>s.myStinks>=5},
+  {id:'verden',    emo:'🌍',  name:'Verdensvandrer',  how:'Smak en ost som ikke er fra Frankrike',       test:s=>s.abroad},
+  {id:'frankrike', emo:'🗺️', name:'Frankrike rundt', how:'Få stempler fra 5 franske regioner',          test:s=>s.regions>=5},
+];
+
+/* regioner der medlemmet har dømt en ost med koordinater — [{f, oster}] */
+function memberStampFeatures(name){
+  if(!regionsGeo) return [];
+  const rated = BOARD.ratings.filter(r=>r.member===name)
+    .map(r=>BOARD.cheeses.find(c=>c.id===r.cheese_id))
+    .filter(c=>c && hasCoords(c));
+  return regionsGeo.features
+    .map(f=>({f, oster: rated.filter(c=>inRegion(+c.lat, +c.lng, f))}))
+    .filter(x=>x.oster.length);
+}
+function badgeStats(){
+  const mine = BOARD.ratings.filter(r=>r.member===SESS.name);
+  const cheeses = mine.map(r=>BOARD.cheeses.find(c=>c.id===r.cheese_id)).filter(Boolean);
+  const milks = new Set(), texs = new Set();
+  let abroad = false;
+  cheeses.forEach(c=>{
+    const {milk, tex} = parseType(c.type);
+    if(milk) milks.add(milk);
+    if(tex) texs.add(tex);
+    if(hasCoords(c) && !inFrance(+c.lat, +c.lng)) abroad = true;
+  });
+  const brave = mine.some(r=>r.score>=4 && BOARD.ratings.some(o=>
+    o.cheese_id===r.cheese_id && o.member!==SESS.name && o.score===1));
+  const myStk = (BOARD.stinks||[]).filter(s=>s.member===SESS.name);
+  return {
+    myRatings: mine.length,
+    milks: ['Ku','Geit','Sau'].filter(m=>milks.has(m)).length,
+    blue: texs.has('Blå'),
+    brave,
+    rumpe: myStk.some(s=>s.stink===5),
+    myStinks: myStk.length,
+    abroad,
+    regions: memberStampFeatures(SESS.name).length,
+  };
+}
+function earnedBadges(){
+  const s = badgeStats();
+  return BADGES.filter(b=>b.test(s));
+}
+function checkNewBadges(){
+  if(!SESS) return;
+  const key = 'flayost_badges_' + SESS.name;
+  const earned = earnedBadges().map(b=>b.id);
+  let prev = null;
+  try{ prev = JSON.parse(localStorage.getItem(key)); }catch(e){}
+  localStorage.setItem(key, JSON.stringify(earned));
+  if(!Array.isArray(prev)){
+    if(earned.length) toast(`🏅 Du har ${earned.length} ${earned.length===1?'merke':'merker'} – se i 🛂 Pass!`);
+    return;
+  }
+  const nye = earned.filter(id=>!prev.includes(id));
+  if(!nye.length) return;
+  const b = BADGES.find(x=>x.id===nye[0]);
+  toast(`🏅 Nytt merke: ${b.emo} ${b.name}!` + (nye.length>1 ? ` (+${nye.length-1} til)` : ''));
+  confetti(innerWidth/2, innerHeight*0.35, b.emo, '🏅');
+}
+let passGeoTried = false;
+function renderPass(){
+  const wrap = $('pass');
+  if(!SESS) return;
+  const stats = badgeStats();
+  const earned = new Set(earnedBadges().map(b=>b.id));
+  let html = `<div class="passhead"><span class="ava">${esc(SESS.avatar)}</span><div>
+    <b style="font-size:19px">${esc(SESS.name)} sitt ostepass</b>
+    <div class="mini">${stats.myRatings} ${stats.myRatings===1?'ost':'oster'} dømt · ${earned.size} av ${BADGES.length} merker</div></div></div>`;
+  html += `<div class="fordeg-h">🏅 Merker</div><div class="badges">`
+    + BADGES.map(b=>`<div class="badge ${earned.has(b.id)?'':'off'}">
+        <span class="bemo">${b.emo}</span><b>${b.name}</b>
+        <span class="mini">${earned.has(b.id) ? 'Klart! 🎉' : esc(b.how)}</span></div>`).join('')
+    + '</div>';
+  html += `<div class="fordeg-h">🛂 Stempler fra Frankrike</div>`;
+  if(!regionsGeo){
+    if(!passGeoTried){
+      passGeoTried = true;
+      loadRegions().then(()=>{ if(TAB==='pass') renderPass(); });
+      html += `<p class="mini">Henter regionene… 🌍</p>`;
+    }else{
+      html += `<p class="mini">Fikk ikke lastet regionene 🛜
+        <button class="ghost small" onclick="passGeoTried=false;renderPass()">Prøv igjen</button></p>`;
+    }
+  }else{
+    const gotten = new Map(memberStampFeatures(SESS.name).map(x=>[x.f.properties.nom, x.oster]));
+    const feats = [...regionsGeo.features].sort((a,b)=>{
+      const ga = gotten.has(a.properties.nom)?0:1, gb = gotten.has(b.properties.nom)?0:1;
+      return ga-gb || a.properties.nom.localeCompare(b.properties.nom,'fr');
+    });
+    html += `<div class="passbar"><i style="width:${gotten.size/feats.length*100}%"></i></div>
+      <p class="mini center" style="margin:-4px 0 10px"><b>${gotten.size} av ${feats.length} regioner stemplet${gotten.size===feats.length?'! 🎉🇫🇷':''}</b></p>`;
+    html += `<div class="stamps">` + feats.map(f=>{
+      const oster = gotten.get(f.properties.nom);
+      return `<div class="stamp ${oster?'got':''}"><span class="semo">${oster?'🧀':'✈️'}</span>
+        <b>${esc(f.properties.nom)}</b>
+        <span class="mini">${oster ? esc(oster.map(c=>c.name).join(', ')) : 'ikke smakt ennå'}</span></div>`;
+    }).join('');
+    const abroad = BOARD.ratings.filter(r=>r.member===SESS.name)
+      .map(r=>BOARD.cheeses.find(c=>c.id===r.cheese_id))
+      .filter(c=>c && hasCoords(c) && !inFrance(+c.lat, +c.lng));
+    if(abroad.length)
+      html += `<div class="stamp got"><span class="semo">🌍</span><b>Resten av verden</b>
+        <span class="mini">${esc(abroad.map(c=>c.name).join(', '))}</span></div>`;
+    html += '</div>';
+    const others = BOARD.members.filter(m=>m.name!==SESS.name);
+    if(others.length){
+      html += `<div class="fordeg-h">👨‍👩‍👧‍👦 Familiens stempler</div>` + others.map(m=>{
+        const n = memberStampFeatures(m.name).length;
+        return `<div class="rline"><span class="ava">${esc(m.avatar)}</span><span class="who">${esc(m.name)}</span>
+          <span class="sc" style="font-size:16px; font-weight:800">${n} ${n===1?'stempel':'stempler'} 🧀</span></div>`;
+      }).join('');
+    }
+  }
+  wrap.innerHTML = html;
+}
+
+/* =====================================================================
    DETALJER
    ===================================================================== */
 function openDetail(id){
@@ -1104,23 +1335,41 @@ function renderDetail(){
   $('dPhotoWrap').innerHTML = c.photo
     ? `<img class="dphoto" src="${c.photo}" alt="">`
     : `<div class="dphoto-emoji">${esc((c.type||'🧀').split(' ')[0]||'🧀')}</div>`;
-  $('dAvg').textContent = avg!==null ? `${EMO[Math.round(avg)]} ${avg.toFixed(1)} av 5 · ${n} ${n===1?'dom':'dommer'}` : 'Ingen har smakt ennå!';
+  const astk = avgStink(c.id);
+  $('dAvg').textContent = (avg!==null ? `${EMO[Math.round(avg)]} ${avg.toFixed(1)} av 5 · ${n} ${n===1?'dom':'dommer'}` : 'Ingen har smakt ennå!')
+    + (astk!==null ? ` · 💨 ${astk.toFixed(1)}` : '');
   $('dEmoRow').innerHTML = [1,2,3,4,5].map(s=>
     `<button class="${mine && mine.score===s?'on':''}" onclick="rate('${c.id}',${s},event)">${EMO[s]}</button>`
   ).join('');
   $('dHint').textContent = mine ? EMO[mine.score]+' '+EMO_WORD[mine.score] : 'Trykk på en smiley!';
+  const mstk = myStink(c.id);
+  $('dStinkRow').innerHTML = [1,2,3,4,5].map(s=>
+    `<button class="${mstk && mstk.stink===s?'on':''}" onclick="rateStink('${c.id}',${s},event)">${STINK[s]}</button>`
+  ).join('');
+  $('dStinkHint').textContent = mstk ? STINK[mstk.stink]+' '+STINK_WORD[mstk.stink] : 'Lukt på osten og trykk!';
   $('dNote').value = mine ? (mine.note||'') : '';
   const list = $('dRatings'); list.innerHTML='';
   const rs = ratingsFor(c.id).sort((a,b)=>b.score-a.score);
+  const stks = stinksFor(c.id);
   rs.forEach(r=>{
     const m = memberOf(r.member) || {avatar:'🙂'};
+    const st = stks.find(s=>s.member===r.member);
     const line = document.createElement('div');
     line.className='rline';
     line.innerHTML = `<span class="ava">${esc(m.avatar)}</span><span class="who">${esc(r.member)}</span>
-      <span class="note">${esc(r.note||'')}</span><span class="sc">${EMO[r.score]}</span>`;
+      <span class="note">${esc(r.note||'')}</span>${st ? `<span class="sc" title="stinkometer">${STINK[st.stink]}</span>`:''}<span class="sc">${EMO[r.score]}</span>`;
     list.appendChild(line);
   });
-  if(!rs.length){
+  // medlemmer som bare har luktet (ikke smakt) skal også med på lista
+  stks.filter(s=>!rs.some(r=>r.member===s.member)).forEach(s=>{
+    const m = memberOf(s.member) || {avatar:'🙂'};
+    const line = document.createElement('div');
+    line.className='rline';
+    line.innerHTML = `<span class="ava">${esc(m.avatar)}</span><span class="who">${esc(s.member)}</span>
+      <span class="note">har bare luktet…</span><span class="sc">${STINK[s.stink]}</span>`;
+    list.appendChild(line);
+  });
+  if(!rs.length && !stks.length){
     const p=document.createElement('p'); p.className='mini center'; p.textContent='Bli den første som smaker!';
     list.appendChild(p);
   }
