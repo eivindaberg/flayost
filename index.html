@@ -516,102 +516,102 @@ const vitsPick = arr => arr[Math.floor(Math.random()*arr.length)];
    + håndsjekkede koordinater. lat/lng peker på byen/området osten kommer fra. */
 const CHEESES_FR = [
   // myke kumelksoster
-  {name:'Camembert de Normandie', milk:'Ku', origin:'Camembert (Normandie)', lat:48.8622, lng:0.1717, tex:'Myk'},
-  {name:'Brie de Meaux', milk:'Ku', origin:'Meaux', lat:48.9603, lng:2.8883, tex:'Myk'},
-  {name:'Brie de Melun', milk:'Ku', origin:'Melun', lat:48.5406, lng:2.6531, tex:'Myk'},
-  {name:'Coulommiers', milk:'Ku', origin:'Coulommiers', lat:48.8156, lng:3.0847, tex:'Myk'},
-  {name:'Époisses', milk:'Ku', origin:'Époisses (Bourgogne)', lat:47.5069, lng:4.1733, tex:'Myk'},
-  {name:'Langres', milk:'Ku', origin:'Langres', lat:47.8625, lng:5.3331, tex:'Myk'},
-  {name:'Chaource', milk:'Ku', origin:'Chaource', lat:48.0586, lng:4.1383, tex:'Myk'},
-  {name:'Munster', milk:'Ku', origin:'Munster (Alsace)', lat:48.0414, lng:7.1342, tex:'Myk'},
-  {name:'Livarot', milk:'Ku', origin:'Livarot (Normandie)', lat:49.0064, lng:0.1519, tex:'Myk'},
-  {name:"Pont-l'Évêque", milk:'Ku', origin:"Pont-l'Évêque (Normandie)", lat:49.2864, lng:0.1897, tex:'Myk'},
-  {name:'Neufchâtel', milk:'Ku', origin:'Neufchâtel-en-Bray', lat:49.7328, lng:1.4394, tex:'Myk'},
-  {name:'Maroilles', milk:'Ku', origin:'Maroilles (Nord)', lat:50.1350, lng:3.7608, tex:'Myk'},
-  {name:"Mont d'Or", milk:'Ku', origin:"Mont d'Or (Haut-Doubs)", lat:46.7270, lng:6.3560, tex:'Myk'},
-  {name:'Saint-Marcellin', milk:'Ku', origin:'Saint-Marcellin (Isère)', lat:45.1517, lng:5.3197, tex:'Myk'},
-  {name:'Saint-Félicien', milk:'Ku', origin:'Dauphiné', lat:45.2000, lng:5.7000, tex:'Myk'},
-  {name:'Reblochon', milk:'Ku', origin:'Thônes (Haute-Savoie)', lat:45.8811, lng:6.3261, tex:'Myk'},
-  {name:'Brillat-Savarin', milk:'Ku', origin:'Normandie', lat:49.1223, lng:-0.4366, tex:'Myk'},
-  {name:'Gaperon', milk:'Ku', origin:'Auvergne', lat:45.7000, lng:3.2000, tex:'Myk'},
-  {name:'Curé Nantais', milk:'Ku', origin:'Pornic (Loire-Atlantique)', lat:47.1156, lng:-2.1039, tex:'Myk'},
-  {name:'Port-Salut', milk:'Ku', origin:'Entrammes (Mayenne)', lat:47.9989, lng:-0.7169, tex:'Myk'},
-  {name:"Carré de l'Est", milk:'Ku', origin:'Lorraine', lat:48.7000, lng:6.2000, tex:'Myk'},
-  {name:'Soumaintrain', milk:'Ku', origin:'Soumaintrain (Bourgogne)', lat:47.9700, lng:3.9700, tex:'Myk'},
-  {name:'Vieux-Lille', milk:'Ku', origin:'Lille', lat:50.6292, lng:3.0573, tex:'Myk'},
-  {name:'Vieux-Boulogne', milk:'Ku', origin:'Boulogne-sur-Mer', lat:50.7264, lng:1.6147, tex:'Myk'},
-  {name:'Caprice des Dieux', milk:'Ku', origin:'Illoud (Haute-Marne)', lat:48.1706, lng:5.5714, tex:'Myk'},
-  {name:'Saint-Albray', milk:'Ku', origin:'Béarn', lat:43.3000, lng:-0.3700, tex:'Myk'},
-  {name:'Délice de Bourgogne', milk:'Ku', origin:'Bourgogne', lat:47.0000, lng:4.5000, tex:'Myk'},
+  {name:'Camembert de Normandie', milk:'Ku', origin:'Camembert (Normandie)', lat:48.8622, lng:0.1717, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Camembert_de_Normandie_%28AOP%29_10.jpg/500px-Camembert_de_Normandie_%28AOP%29_10.jpg'},
+  {name:'Brie de Meaux', milk:'Ku', origin:'Meaux', lat:48.9603, lng:2.8883, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Brie_01.jpg/500px-Brie_01.jpg'},
+  {name:'Brie de Melun', milk:'Ku', origin:'Melun', lat:48.5406, lng:2.6531, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Wikicheese_-_Brie_de_Melun_-_20150515_-_015.jpg/500px-Wikicheese_-_Brie_de_Melun_-_20150515_-_015.jpg'},
+  {name:'Coulommiers', milk:'Ku', origin:'Coulommiers', lat:48.8156, lng:3.0847, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Coulommiers_lait_cru.jpg/500px-Coulommiers_lait_cru.jpg'},
+  {name:'Époisses', milk:'Ku', origin:'Époisses (Bourgogne)', lat:47.5069, lng:4.1733, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/%C3%89poisses_Gaugry_03.jpg/500px-%C3%89poisses_Gaugry_03.jpg'},
+  {name:'Langres', milk:'Ku', origin:'Langres', lat:47.8625, lng:5.3331, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Langres_%28_52_%29_vue_g%C3%A9n%C3%A9rale.jpg/500px-Langres_%28_52_%29_vue_g%C3%A9n%C3%A9rale.jpg'},
+  {name:'Chaource', milk:'Ku', origin:'Chaource', lat:48.0586, lng:4.1383, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Chaource_%28fromage%29_01.jpg/500px-Chaource_%28fromage%29_01.jpg'},
+  {name:'Munster', milk:'Ku', origin:'Munster (Alsace)', lat:48.0414, lng:7.1342, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Munster_01.jpg/500px-Munster_01.jpg'},
+  {name:'Livarot', milk:'Ku', origin:'Livarot (Normandie)', lat:49.0064, lng:0.1519, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/%C3%89glise_de_Livarot.jpg/500px-%C3%89glise_de_Livarot.jpg'},
+  {name:"Pont-l'Évêque", milk:'Ku', origin:"Pont-l'Évêque (Normandie)", lat:49.2864, lng:0.1897, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Pont-l%27%C3%89v%C3%AAque_03.jpg/500px-Pont-l%27%C3%89v%C3%AAque_03.jpg'},
+  {name:'Neufchâtel', milk:'Ku', origin:'Neufchâtel-en-Bray', lat:49.7328, lng:1.4394, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/C%C5%93urs_de_Neufch%C3%A2tel_01.jpg/500px-C%C5%93urs_de_Neufch%C3%A2tel_01.jpg'},
+  {name:'Maroilles', milk:'Ku', origin:'Maroilles (Nord)', lat:50.1350, lng:3.7608, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Maroilles_%28cheese%29.jpg/500px-Maroilles_%28cheese%29.jpg'},
+  {name:"Mont d'Or", milk:'Ku', origin:"Mont d'Or (Haut-Doubs)", lat:46.7270, lng:6.3560, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Vacherin_du_haut_Doubs.jpg/500px-Vacherin_du_haut_Doubs.jpg'},
+  {name:'Saint-Marcellin', milk:'Ku', origin:'Saint-Marcellin (Isère)', lat:45.1517, lng:5.3197, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Wikicheese_-_Saint-marcellin_-_20150417_-_010.jpg/500px-Wikicheese_-_Saint-marcellin_-_20150417_-_010.jpg'},
+  {name:'Saint-Félicien', milk:'Ku', origin:'Dauphiné', lat:45.2000, lng:5.7000, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Saint-F%C3%A9licien_02.jpg/500px-Saint-F%C3%A9licien_02.jpg'},
+  {name:'Reblochon', milk:'Ku', origin:'Thônes (Haute-Savoie)', lat:45.8811, lng:6.3261, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Reblochon_11.jpg/500px-Reblochon_11.jpg'},
+  {name:'Brillat-Savarin', milk:'Ku', origin:'Normandie', lat:49.1223, lng:-0.4366, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/WikiCheese_-_Brillat-savarin_04.jpg/500px-WikiCheese_-_Brillat-savarin_04.jpg'},
+  {name:'Gaperon', milk:'Ku', origin:'Auvergne', lat:45.7000, lng:3.2000, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Wikicheese_Clermont-Ferrand_-_Gaperon_20220825-02.jpg/500px-Wikicheese_Clermont-Ferrand_-_Gaperon_20220825-02.jpg'},
+  {name:'Curé Nantais', milk:'Ku', origin:'Pornic (Loire-Atlantique)', lat:47.1156, lng:-2.1039, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Cur%C3%A9_nantais.JPG/500px-Cur%C3%A9_nantais.JPG'},
+  {name:'Port-Salut', milk:'Ku', origin:'Entrammes (Mayenne)', lat:47.9989, lng:-0.7169, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Port_Salut_cheese.jpg/500px-Port_Salut_cheese.jpg'},
+  {name:"Carré de l'Est", milk:'Ku', origin:'Lorraine', lat:48.7000, lng:6.2000, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Carr%C3%A9_de_l%27Est.jpg/500px-Carr%C3%A9_de_l%27Est.jpg'},
+  {name:'Soumaintrain', milk:'Ku', origin:'Soumaintrain (Bourgogne)', lat:47.9700, lng:3.9700, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Soumaintrain_250g_GAUGRY.jpg/500px-Soumaintrain_250g_GAUGRY.jpg'},
+  {name:'Vieux-Lille', milk:'Ku', origin:'Lille', lat:50.6292, lng:3.0573, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Lille_RueEsquermoise.JPG/500px-Lille_RueEsquermoise.JPG'},
+  {name:'Vieux-Boulogne', milk:'Ku', origin:'Boulogne-sur-Mer', lat:50.7264, lng:1.6147, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/20080904-cap_blanc_nez_plateau.jpg/500px-20080904-cap_blanc_nez_plateau.jpg'},
+  {name:'Caprice des Dieux', milk:'Ku', origin:'Illoud (Haute-Marne)', lat:48.1706, lng:5.5714, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Caprice_des_Dieux.JPG/500px-Caprice_des_Dieux.JPG'},
+  {name:'Saint-Albray', milk:'Ku', origin:'Béarn', lat:43.3000, lng:-0.3700, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Saint_Albray_sur_assiette.JPG/500px-Saint_Albray_sur_assiette.JPG'},
+  {name:'Délice de Bourgogne', milk:'Ku', origin:'Bourgogne', lat:47.0000, lng:4.5000, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/DELICE_DE_BOURGOGNE_2KG_LINCET_EXPORT.png/500px-DELICE_DE_BOURGOGNE_2KG_LINCET_EXPORT.png'},
   {name:'Chaumes', milk:'Ku', origin:'Périgord', lat:44.8442, lng:0.1547, tex:'Myk'},
-  {name:'Tamié', milk:'Ku', origin:'Abbaye de Tamié (Savoie)', lat:45.6656, lng:6.3086, tex:'Myk'},
-  {name:"Boulette d'Avesnes", milk:'Ku', origin:'Avesnes-sur-Helpe', lat:50.1236, lng:3.9294, tex:'Myk'},
+  {name:'Tamié', milk:'Ku', origin:'Abbaye de Tamié (Savoie)', lat:45.6656, lng:6.3086, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Abbaye_de_Tami%C3%A9_Cheese_from_Terroirs_by_LQV.jpg/500px-Abbaye_de_Tami%C3%A9_Cheese_from_Terroirs_by_LQV.jpg'},
+  {name:"Boulette d'Avesnes", milk:'Ku', origin:'Avesnes-sur-Helpe', lat:50.1236, lng:3.9294, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Boulette_d%27Avesnes_04.jpg/500px-Boulette_d%27Avesnes_04.jpg'},
   // faste
-  {name:'Comté', milk:'Ku', origin:'Franche-Comté', lat:47.0000, lng:6.0000, tex:'Fast'},
-  {name:'Beaufort', milk:'Ku', origin:'Beaufort (Savoie)', lat:45.7181, lng:6.5750, tex:'Fast'},
-  {name:'Abondance', milk:'Ku', origin:'Abondance (Haute-Savoie)', lat:46.2803, lng:6.7217, tex:'Fast'},
-  {name:'Emmental de Savoie', milk:'Ku', origin:'Savoie', lat:45.5833, lng:6.3333, tex:'Fast'},
-  {name:'Tomme de Savoie', milk:'Ku', origin:'Savoie', lat:45.5833, lng:6.3333, tex:'Fast'},
-  {name:'Tome des Bauges', milk:'Ku', origin:'Massif des Bauges', lat:45.6500, lng:6.1500, tex:'Fast'},
-  {name:'Raclette de Savoie', milk:'Ku', origin:'Savoie', lat:45.5833, lng:6.3333, tex:'Fast'},
-  {name:'Cantal', milk:'Ku', origin:'Monts du Cantal (Auvergne)', lat:45.1094, lng:2.6761, tex:'Fast'},
-  {name:'Salers', milk:'Ku', origin:'Salers (Cantal)', lat:45.1372, lng:2.4939, tex:'Fast'},
-  {name:'Laguiole', milk:'Ku', origin:'Laguiole (Aubrac)', lat:44.6842, lng:2.8472, tex:'Fast'},
-  {name:'Morbier', milk:'Ku', origin:'Morbier (Jura)', lat:46.5369, lng:6.0167, tex:'Fast'},
-  {name:'Mimolette', milk:'Ku', origin:'Lille', lat:50.6292, lng:3.0573, tex:'Fast'},
-  {name:'Saint-Nectaire', milk:'Ku', origin:'Saint-Nectaire (Auvergne)', lat:45.5881, lng:2.9928, tex:'Fast'},
-  {name:'Ossau-Iraty', milk:'Sau', origin:'Pays basque / Béarn', lat:43.0000, lng:-1.0000, tex:'Fast'},
-  {name:'Tomme des Pyrénées', milk:'Ku', origin:'Pyrénées', lat:42.9300, lng:0.6500, tex:'Fast'},
-  {name:'Bethmale', milk:'Ku', origin:'Bethmale (Ariège)', lat:42.9333, lng:1.0833, tex:'Fast'},
-  {name:"P'tit Basque", milk:'Sau', origin:'Pays basque', lat:43.3500, lng:-1.2000, tex:'Fast'},
-  {name:'Abbaye de Belloc', milk:'Sau', origin:'Urt (Pays basque)', lat:43.4900, lng:-1.2900, tex:'Fast'},
-  {name:'Tomme de brebis', milk:'Sau', origin:'Pyrénées', lat:43.0000, lng:-0.6000, tex:'Fast'},
+  {name:'Comté', milk:'Ku', origin:'Franche-Comté', lat:47.0000, lng:6.0000, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Comte_AOP.jpg/500px-Comte_AOP.jpg'},
+  {name:'Beaufort', milk:'Ku', origin:'Beaufort (Savoie)', lat:45.7181, lng:6.5750, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Beaufort_%28fromage%29_01.jpg/500px-Beaufort_%28fromage%29_01.jpg'},
+  {name:'Abondance', milk:'Ku', origin:'Abondance (Haute-Savoie)', lat:46.2803, lng:6.7217, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Abondance_%28fromage%29_01.jpg/500px-Abondance_%28fromage%29_01.jpg'},
+  {name:'Emmental de Savoie', milk:'Ku', origin:'Savoie', lat:45.5833, lng:6.3333, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Emmental_de_Savoie_02.jpg/500px-Emmental_de_Savoie_02.jpg'},
+  {name:'Tomme de Savoie', milk:'Ku', origin:'Savoie', lat:45.5833, lng:6.3333, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/WikiCheese_-_Tomme_de_Savoie_-_20150619_-_002.jpg/500px-WikiCheese_-_Tomme_de_Savoie_-_20150619_-_002.jpg'},
+  {name:'Tome des Bauges', milk:'Ku', origin:'Massif des Bauges', lat:45.6500, lng:6.1500, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Tome_des_Bauges.jpg/500px-Tome_des_Bauges.jpg'},
+  {name:'Raclette de Savoie', milk:'Ku', origin:'Savoie', lat:45.5833, lng:6.3333, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Raclette_%286300310978%29.jpg/500px-Raclette_%286300310978%29.jpg'},
+  {name:'Cantal', milk:'Ku', origin:'Monts du Cantal (Auvergne)', lat:45.1094, lng:2.6761, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Wikicheese-XX_-_Cantal_entre-deux_-_20180601_-_002.jpg/500px-Wikicheese-XX_-_Cantal_entre-deux_-_20180601_-_002.jpg'},
+  {name:'Salers', milk:'Ku', origin:'Salers (Cantal)', lat:45.1372, lng:2.4939, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Salers_%28fromage%29_01.jpg/500px-Salers_%28fromage%29_01.jpg'},
+  {name:'Laguiole', milk:'Ku', origin:'Laguiole (Aubrac)', lat:44.6842, lng:2.8472, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Laguiole_%28fromage%29_01.jpg/500px-Laguiole_%28fromage%29_01.jpg'},
+  {name:'Morbier', milk:'Ku', origin:'Morbier (Jura)', lat:46.5369, lng:6.0167, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Morbier_%28fromage%29_01.jpg/500px-Morbier_%28fromage%29_01.jpg'},
+  {name:'Mimolette', milk:'Ku', origin:'Lille', lat:50.6292, lng:3.0573, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/A_Mimolette_cheese_at_The_Verandah.jpg/500px-A_Mimolette_cheese_at_The_Verandah.jpg'},
+  {name:'Saint-Nectaire', milk:'Ku', origin:'Saint-Nectaire (Auvergne)', lat:45.5881, lng:2.9928, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Saint-Nectaire_Vue_g%C3%A9n%C3%A9rale10.JPG/500px-Saint-Nectaire_Vue_g%C3%A9n%C3%A9rale10.JPG'},
+  {name:'Ossau-Iraty', milk:'Sau', origin:'Pays basque / Béarn', lat:43.0000, lng:-1.0000, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Fromages_Ossau-Iraty_003.jpg/500px-Fromages_Ossau-Iraty_003.jpg'},
+  {name:'Tomme des Pyrénées', milk:'Ku', origin:'Pyrénées', lat:42.9300, lng:0.6500, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Tommes_des_Pyr%C3%A9n%C3%A9es.jpg/500px-Tommes_des_Pyr%C3%A9n%C3%A9es.jpg'},
+  {name:'Bethmale', milk:'Ku', origin:'Bethmale (Ariège)', lat:42.9333, lng:1.0833, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Wikicheese_-_Bethmale_-_20150417_-_001.jpg/500px-Wikicheese_-_Bethmale_-_20150417_-_001.jpg'},
+  {name:"P'tit Basque", milk:'Sau', origin:'Pays basque', lat:43.3500, lng:-1.2000, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Paris%2C_fromage_Istara_P%27tit_Basque_au_march%C3%A9.JPG/500px-Paris%2C_fromage_Istara_P%27tit_Basque_au_march%C3%A9.JPG'},
+  {name:'Abbaye de Belloc', milk:'Sau', origin:'Urt (Pays basque)', lat:43.4900, lng:-1.2900, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Abbaye-de-Belloc.JPG/500px-Abbaye-de-Belloc.JPG'},
+  {name:'Tomme de brebis', milk:'Sau', origin:'Pyrénées', lat:43.0000, lng:-0.6000, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Wikicheese_-_Roquefort_-_20150417_-_002.jpg/500px-Wikicheese_-_Roquefort_-_20150417_-_002.jpg'},
   // blå
-  {name:'Roquefort', milk:'Sau', origin:'Roquefort-sur-Soulzon', lat:43.9767, lng:2.9889, tex:'Blå'},
-  {name:"Bleu d'Auvergne", milk:'Ku', origin:'Auvergne', lat:45.7000, lng:3.1000, tex:'Blå'},
-  {name:'Bleu des Causses', milk:'Ku', origin:'Causses (Aveyron)', lat:44.2500, lng:2.7000, tex:'Blå'},
-  {name:"Fourme d'Ambert", milk:'Ku', origin:'Ambert', lat:45.5494, lng:3.7417, tex:'Blå'},
-  {name:'Fourme de Montbrison', milk:'Ku', origin:'Montbrison', lat:45.6075, lng:4.0653, tex:'Blå'},
-  {name:'Bleu de Gex', milk:'Ku', origin:'Gex (Haut-Jura)', lat:46.3331, lng:6.0578, tex:'Blå'},
-  {name:'Bleu du Vercors-Sassenage', milk:'Ku', origin:'Sassenage (Vercors)', lat:45.2050, lng:5.6650, tex:'Blå'},
-  {name:'Bleu de Termignon', milk:'Ku', origin:'Termignon (Savoie)', lat:45.2775, lng:6.8169, tex:'Blå'},
-  {name:'Bleu de Bresse', milk:'Ku', origin:'Bresse', lat:46.3000, lng:5.2000, tex:'Blå'},
-  {name:'Bleu de Laqueuille', milk:'Ku', origin:'Laqueuille (Auvergne)', lat:45.6500, lng:2.7325, tex:'Blå'},
-  {name:'Saint-Agur', milk:'Ku', origin:'Beauzac (Auvergne)', lat:45.2597, lng:4.0989, tex:'Blå'},
-  {name:'Bleu des Basques', milk:'Sau', origin:'Pays basque', lat:43.3000, lng:-1.0000, tex:'Blå'},
+  {name:'Roquefort', milk:'Sau', origin:'Roquefort-sur-Soulzon', lat:43.9767, lng:2.9889, tex:'Blå', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Wikicheese_-_Roquefort_-_20150417_-_002.jpg/500px-Wikicheese_-_Roquefort_-_20150417_-_002.jpg'},
+  {name:"Bleu d'Auvergne", milk:'Ku', origin:'Auvergne', lat:45.7000, lng:3.1000, tex:'Blå', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Wikicheese_Clermont-Ferrand_-_Bleu_d%27Auvergne_20220825-02.jpg/500px-Wikicheese_Clermont-Ferrand_-_Bleu_d%27Auvergne_20220825-02.jpg'},
+  {name:'Bleu des Causses', milk:'Ku', origin:'Causses (Aveyron)', lat:44.2500, lng:2.7000, tex:'Blå', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/WikiCheese_-_Bleu_des_Causses_-_20150619_-_001.jpg/500px-WikiCheese_-_Bleu_des_Causses_-_20150619_-_001.jpg'},
+  {name:"Fourme d'Ambert", milk:'Ku', origin:'Ambert', lat:45.5494, lng:3.7417, tex:'Blå', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Wikicheese_Clermont-Ferrand_-_Fourme_d%27Ambert_20220825-01.jpg/500px-Wikicheese_Clermont-Ferrand_-_Fourme_d%27Ambert_20220825-01.jpg'},
+  {name:'Fourme de Montbrison', milk:'Ku', origin:'Montbrison', lat:45.6075, lng:4.0653, tex:'Blå', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Wikicheese_-_Fourme_de_Montbrison_-_20151024_-_012.jpg/500px-Wikicheese_-_Fourme_de_Montbrison_-_20151024_-_012.jpg'},
+  {name:'Bleu de Gex', milk:'Ku', origin:'Gex (Haut-Jura)', lat:46.3331, lng:6.0578, tex:'Blå', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Bleu_de_Gex.jpg/500px-Bleu_de_Gex.jpg'},
+  {name:'Bleu du Vercors-Sassenage', milk:'Ku', origin:'Sassenage (Vercors)', lat:45.2050, lng:5.6650, tex:'Blå', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Bleu_du_Vercors_-_coup%C3%A9_-_juil_2019.jpg/500px-Bleu_du_Vercors_-_coup%C3%A9_-_juil_2019.jpg'},
+  {name:'Bleu de Termignon', milk:'Ku', origin:'Termignon (Savoie)', lat:45.2775, lng:6.8169, tex:'Blå', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Bleu_de_Termignon_lors_du_Wikicheese_du_26_f%C3%A9vrier_2016_18.JPG/500px-Bleu_de_Termignon_lors_du_Wikicheese_du_26_f%C3%A9vrier_2016_18.JPG'},
+  {name:'Bleu de Bresse', milk:'Ku', origin:'Bresse', lat:46.3000, lng:5.2000, tex:'Blå', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bleu_de_Bresse_cheese.jpg/500px-Bleu_de_Bresse_cheese.jpg'},
+  {name:'Bleu de Laqueuille', milk:'Ku', origin:'Laqueuille (Auvergne)', lat:45.6500, lng:2.7325, tex:'Blå', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Wikicheese_Clermont-Ferrand_-_Bleu_de_Laqueuille_20220825-01.jpg/500px-Wikicheese_Clermont-Ferrand_-_Bleu_de_Laqueuille_20220825-01.jpg'},
+  {name:'Saint-Agur', milk:'Ku', origin:'Beauzac (Auvergne)', lat:45.2597, lng:4.0989, tex:'Blå', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/SaintAgurCheese.jpg/500px-SaintAgurCheese.jpg'},
+  {name:'Bleu des Basques', milk:'Sau', origin:'Pays basque', lat:43.3000, lng:-1.0000, tex:'Blå', img:'https://upload.wikimedia.org/wikipedia/commons/6/6a/Bleu_des_Basque_brebis_3.png'},
   // geit
-  {name:'Banon', milk:'Geit', origin:'Banon (Provence)', lat:44.0381, lng:5.6281, tex:'Myk'},
-  {name:'Crottin de Chavignol', milk:'Geit', origin:'Chavignol (Sancerre)', lat:47.3375, lng:2.7983, tex:'Myk'},
-  {name:'Sainte-Maure de Touraine', milk:'Geit', origin:'Sainte-Maure-de-Touraine', lat:47.1122, lng:0.6211, tex:'Myk'},
-  {name:'Valençay', milk:'Geit', origin:'Valençay', lat:47.1606, lng:1.5661, tex:'Myk'},
-  {name:'Selles-sur-Cher', milk:'Geit', origin:'Selles-sur-Cher', lat:47.2756, lng:1.5547, tex:'Myk'},
-  {name:'Pouligny-Saint-Pierre', milk:'Geit', origin:'Pouligny-Saint-Pierre', lat:46.6808, lng:1.0392, tex:'Myk'},
-  {name:'Chabichou du Poitou', milk:'Geit', origin:'Poitou', lat:46.6486, lng:-0.2478, tex:'Myk'},
-  {name:'Rocamadour', milk:'Geit', origin:'Rocamadour', lat:44.7994, lng:1.6178, tex:'Myk'},
-  {name:'Cabécou', milk:'Geit', origin:'Quercy', lat:44.2667, lng:1.6333, tex:'Myk'},
-  {name:'Picodon', milk:'Geit', origin:'Drôme / Ardèche', lat:44.7500, lng:4.8000, tex:'Myk'},
-  {name:'Pélardon', milk:'Geit', origin:'Cévennes', lat:44.1200, lng:3.9000, tex:'Myk'},
-  {name:'Chevrotin', milk:'Geit', origin:'Haute-Savoie', lat:45.8800, lng:6.3300, tex:'Myk'},
-  {name:'Charolais', milk:'Geit', origin:'Charolles (Bourgogne)', lat:46.4353, lng:4.2758, tex:'Myk'},
-  {name:'Mâconnais', milk:'Geit', origin:'Mâcon', lat:46.3069, lng:4.8286, tex:'Myk'},
-  {name:'Rigotte de Condrieu', milk:'Geit', origin:'Condrieu', lat:45.4633, lng:4.7683, tex:'Myk'},
-  {name:'Mothais sur feuille', milk:'Geit', origin:'La Mothe-Saint-Héray', lat:46.3536, lng:-0.1103, tex:'Myk'},
+  {name:'Banon', milk:'Geit', origin:'Banon (Provence)', lat:44.0381, lng:5.6281, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Banon_02.jpg/500px-Banon_02.jpg'},
+  {name:'Crottin de Chavignol', milk:'Geit', origin:'Chavignol (Sancerre)', lat:47.3375, lng:2.7983, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Crottin_02.jpg/500px-Crottin_02.jpg'},
+  {name:'Sainte-Maure de Touraine', milk:'Geit', origin:'Sainte-Maure-de-Touraine', lat:47.1122, lng:0.6211, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Sainte-Maure_de_touraine_01.jpg/500px-Sainte-Maure_de_touraine_01.jpg'},
+  {name:'Valençay', milk:'Geit', origin:'Valençay', lat:47.1606, lng:1.5661, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Valen%C3%A7ay_04.jpg/500px-Valen%C3%A7ay_04.jpg'},
+  {name:'Selles-sur-Cher', milk:'Geit', origin:'Selles-sur-Cher', lat:47.2756, lng:1.5547, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Selles04.jpg/500px-Selles04.jpg'},
+  {name:'Pouligny-Saint-Pierre', milk:'Geit', origin:'Pouligny-Saint-Pierre', lat:46.6808, lng:1.0392, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Pouligny-saint-pierre_%28fromage%29_03.jpg/500px-Pouligny-saint-pierre_%28fromage%29_03.jpg'},
+  {name:'Chabichou du Poitou', milk:'Geit', origin:'Poitou', lat:46.6486, lng:-0.2478, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Chabichou_du_Poitou_04.jpg/500px-Chabichou_du_Poitou_04.jpg'},
+  {name:'Rocamadour', milk:'Geit', origin:'Rocamadour', lat:44.7994, lng:1.6178, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Rocamadour_vue_cote.JPG/500px-Rocamadour_vue_cote.JPG'},
+  {name:'Cabécou', milk:'Geit', origin:'Quercy', lat:44.2667, lng:1.6333, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Cab%C3%A9cou_de_l%27Aveyron.JPG/500px-Cab%C3%A9cou_de_l%27Aveyron.JPG'},
+  {name:'Picodon', milk:'Geit', origin:'Drôme / Ardèche', lat:44.7500, lng:4.8000, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Wikicheese_-_Picodon_-_20150417_-_003.jpg/500px-Wikicheese_-_Picodon_-_20150417_-_003.jpg'},
+  {name:'Pélardon', milk:'Geit', origin:'Cévennes', lat:44.1200, lng:3.9000, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/P%C3%A9lardon_02.jpg/500px-P%C3%A9lardon_02.jpg'},
+  {name:'Chevrotin', milk:'Geit', origin:'Haute-Savoie', lat:45.8800, lng:6.3300, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Chevrotin_des_Aravis_%28avril_2021%29_-_2.jpg/500px-Chevrotin_des_Aravis_%28avril_2021%29_-_2.jpg'},
+  {name:'Charolais', milk:'Geit', origin:'Charolles (Bourgogne)', lat:46.4353, lng:4.2758, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Fromage_charolais.jpg/500px-Fromage_charolais.jpg'},
+  {name:'Mâconnais', milk:'Geit', origin:'Mâcon', lat:46.3069, lng:4.8286, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/Wikicheese_-_M%C3%A2connais_-_20150417_-_001.jpg/500px-Wikicheese_-_M%C3%A2connais_-_20150417_-_001.jpg'},
+  {name:'Rigotte de Condrieu', milk:'Geit', origin:'Condrieu', lat:45.4633, lng:4.7683, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/WikiCheese_-_Rigotte_de_Condrieu_-_20150619_-_001.jpg/500px-WikiCheese_-_Rigotte_de_Condrieu_-_20150619_-_001.jpg'},
+  {name:'Mothais sur feuille', milk:'Geit', origin:'La Mothe-Saint-Héray', lat:46.3536, lng:-0.1103, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Mothais_sur_feuille.jpg/500px-Mothais_sur_feuille.jpg'},
   {name:'Bouton de Culotte', milk:'Geit', origin:'Mâconnais', lat:46.3069, lng:4.8286, tex:'Myk'},
-  {name:'Brousse du Rove', milk:'Geit', origin:'Le Rove (Provence)', lat:43.3692, lng:5.2506, tex:'Fersk'},
-  {name:'Tomme de Provence', milk:'Geit', origin:'Provence', lat:43.9000, lng:6.0000, tex:'Myk'},
-  {name:"Poivre d'âne", milk:'Geit', origin:'Provence', lat:43.9000, lng:5.8000, tex:'Myk'},
-  {name:'Bûche de chèvre', milk:'Geit', origin:'Poitou', lat:46.6486, lng:-0.2478, tex:'Myk'},
+  {name:'Brousse du Rove', milk:'Geit', origin:'Le Rove (Provence)', lat:43.3692, lng:5.2506, tex:'Fersk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Brousse_du_Rove_01666.jpg/500px-Brousse_du_Rove_01666.jpg'},
+  {name:'Tomme de Provence', milk:'Geit', origin:'Provence', lat:43.9000, lng:6.0000, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Tomme_de_Provence_dans_une_fromagerie_d%27Arles.jpg/500px-Tomme_de_Provence_dans_une_fromagerie_d%27Arles.jpg'},
+  {name:"Poivre d'âne", milk:'Geit', origin:'Provence', lat:43.9000, lng:5.8000, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Poivre_d%27ane_et_AOC_Ventoux.jpg/500px-Poivre_d%27ane_et_AOC_Ventoux.jpg'},
+  {name:'Bûche de chèvre', milk:'Geit', origin:'Poitou', lat:46.6486, lng:-0.2478, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Principales_AOC_France.jpg/500px-Principales_AOC_France.jpg'},
   // sau og Korsika
-  {name:'Brocciu', milk:'Sau', origin:'Korsika', lat:42.1500, lng:9.0833, tex:'Fersk'},
-  {name:"Brin d'Amour", milk:'Sau', origin:'Korsika', lat:42.3000, lng:9.1500, tex:'Myk'},
-  {name:'Pérail', milk:'Sau', origin:'Larzac', lat:43.9800, lng:3.2000, tex:'Myk'},
+  {name:'Brocciu', milk:'Sau', origin:'Korsika', lat:42.1500, lng:9.0833, tex:'Fersk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Brocciu2.jpg/500px-Brocciu2.jpg'},
+  {name:"Brin d'Amour", milk:'Sau', origin:'Korsika', lat:42.3000, lng:9.1500, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Wikicheese_-_Fleur_du_Maquis_-_20150417_-_005.jpg/500px-Wikicheese_-_Fleur_du_Maquis_-_20150417_-_005.jpg'},
+  {name:'Pérail', milk:'Sau', origin:'Larzac', lat:43.9800, lng:3.2000, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Cheese_P%C3%A9rail.jpg/500px-Cheese_P%C3%A9rail.jpg'},
   // ferske og barnas favoritter
-  {name:'Fontainebleau', milk:'Ku', origin:'Fontainebleau', lat:48.4047, lng:2.7016, tex:'Fersk'},
-  {name:'Petit-Suisse', milk:'Ku', origin:'Gournay-en-Bray (Normandie)', lat:49.4822, lng:1.7253, tex:'Fersk'},
-  {name:'Boursin', milk:'Ku', origin:'Croisy-sur-Eure (Normandie)', lat:49.0167, lng:1.3833, tex:'Fersk'},
+  {name:'Fontainebleau', milk:'Ku', origin:'Fontainebleau', lat:48.4047, lng:2.7016, tex:'Fersk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/L%27%C3%A9tang_aux_carpes_vue_du_ciel.jpg/500px-L%27%C3%A9tang_aux_carpes_vue_du_ciel.jpg'},
+  {name:'Petit-Suisse', milk:'Ku', origin:'Gournay-en-Bray (Normandie)', lat:49.4822, lng:1.7253, tex:'Fersk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Petit-suisse_assiette.jpg/500px-Petit-suisse_assiette.jpg'},
+  {name:'Boursin', milk:'Ku', origin:'Croisy-sur-Eure (Normandie)', lat:49.0167, lng:1.3833, tex:'Fersk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Boursin-cheese-3494_1280.jpg/500px-Boursin-cheese-3494_1280.jpg'},
   {name:'La vache qui rit', milk:'Ku', origin:'Lons-le-Saunier (Jura)', lat:46.6744, lng:5.5539},
   {name:'Kiri', milk:'Ku', origin:'Lons-le-Saunier (Jura)', lat:46.6744, lng:5.5539, tex:'Fersk'},
-  {name:'Cancoillotte', milk:'Ku', origin:'Franche-Comté', lat:47.0000, lng:6.0000, tex:'Fersk'}
+  {name:'Cancoillotte', milk:'Ku', origin:'Franche-Comté', lat:47.0000, lng:6.0000, tex:'Fersk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Cancoillotte_001.jpg/500px-Cancoillotte_001.jpg'}
 ];
 
 /* ---------- franske regioner til «Hvor er den fra?» ----------
@@ -714,6 +714,16 @@ function confetti(x, y, emoji, alt){
   }
 }
 function memberOf(name){ return BOARD.members.find(m=>m.name===name); }
+/* Nettbilde (Wikimedia, kuratert inn i CHEESES_FR ved dev-tid) for oster
+   uten eget foto: eksakt navnetreff først, deretter delvis treff begge veier
+   («Brie» finner Brie de Meaux, «Comté 24 mnd» finner Comté). */
+function webImgFor(name){
+  const f = fold(name);
+  if(!f) return null;
+  const hit = CHEESES_FR.find(c=>c.img && fold(c.name)===f)
+           || CHEESES_FR.find(c=>c.img && (f.includes(fold(c.name)) || fold(c.name).includes(f)));
+  return hit ? hit.img : null;
+}
 function ratingsFor(id){ return BOARD.ratings.filter(r=>r.cheese_id===id); }
 function myRating(id){ return SESS ? BOARD.ratings.find(r=>r.cheese_id===id && r.member===SESS.name) : null; }
 function avgOf(id){
@@ -1024,8 +1034,9 @@ function renderWall(){
     const n = ratingsFor(c.id).length;
     const card = document.createElement('div');
     card.className='cheese';
-    const photo = c.photo
-      ? `<div class="photo" style="background-image:url('${c.photo}')" onclick="openDetail('${c.id}')"></div>`
+    const src = c.photo || webImgFor(c.name);
+    const photo = src
+      ? `<div class="photo" style="background-image:url('${src}')" onclick="openDetail('${c.id}')"></div>`
       : `<div class="photo" onclick="openDetail('${c.id}')">${esc((c.type||'🧀').split(' ')[0]||'🧀')}</div>`;
     const emos = [1,2,3,4,5].map(s=>
       `<button class="${mine && mine.score===s ? 'on':''}" onclick="rate('${c.id}',${s},event)">${EMO[s]}</button>`
@@ -1601,8 +1612,12 @@ function renderDetail(){
   $('dName').textContent = c.name;
   $('dMeta').innerHTML = esc((c.type? c.type+' · ':'') + (c.origin? '📍 '+c.origin+' · ':'') + 'lagt til av ' + c.added_by)
     + ` &nbsp;<button class="ghost small" onclick="editOrigin()">${c.origin ? '✏️ endre sted' : '📍 legg til sted'}</button>`;
+  const wimg = c.photo ? null : webImgFor(c.name);
   $('dPhotoWrap').innerHTML = c.photo
     ? `<img class="dphoto" src="${c.photo}" alt="">`
+    : wimg
+    ? `<img class="dphoto" src="${wimg}" alt="" onerror="this.parentElement.innerHTML='<div class=dphoto-emoji>🧀</div>'">
+       <div class="mini" style="text-align:right; margin-top:-6px;">📷 Wikimedia</div>`
     : `<div class="dphoto-emoji">${esc((c.type||'🧀').split(' ')[0]||'🧀')}</div>`;
   const astk = avgStink(c.id);
   $('dAvg').textContent = (avg!==null ? `${EMO[Math.round(avg)]} ${avg.toFixed(1)} av 5 · ${n} ${n===1?'dom':'dommer'}` : 'Ingen har smakt ennå!')
