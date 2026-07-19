@@ -43,6 +43,8 @@
   .grow{flex:1;}
   .hidden{display:none !important;}
   .mini{font-size:13px; color:var(--muted);}
+  .ostevits{text-align:center; font-size:13px; font-style:italic; color:var(--muted); opacity:.85; margin:16px auto 4px; max-width:440px;}
+  #vits-wall{margin-bottom:84px;}
   .center{text-align:center;}
 
   /* ---------- login ---------- */
@@ -250,6 +252,7 @@
       </div>
     </div>
     <p class="mini center">Flayosc + ost = Flayost 🇫🇷 · Én ting, gjort skikkelig godt.</p>
+    <p class="ostevits" id="vits-login"></p>
   </div>
 
   <!-- ================= OSTEVEGGEN ================= -->
@@ -285,6 +288,7 @@
     </div>
     <div id="fordeg-wrap" class="hidden"><div id="fordeg"></div></div>
     <div id="pass-wrap" class="hidden"><div id="pass"></div></div>
+    <p class="ostevits" id="vits-wall"></p>
     <button class="fab" onclick="openAdd()">➕ Ny ost</button>
   </div>
 </div>
@@ -341,6 +345,7 @@
     <button class="photobtn" onclick="document.getElementById('addFile').click()">📷 Ta bilde av osten</button>
     <input type="file" id="addFile" accept="image/*" capture="environment" class="hidden" onchange="onPhotoPicked(this)">
     <img id="addPreview" class="hidden" alt="">
+    <p class="ostevits" id="vits-add"></p>
     <button class="primary" id="addSave" onclick="saveCheese()">Legg til osten</button>
   </div>
 </div>
@@ -371,6 +376,75 @@ const AVATARS = ['🦊','🐰','🦁','🐸','🐼','🦄','🐙','🦖','🐶',
 const MILKS = [['🐄','Ku'],['🐐','Geit'],['🐑','Sau'],['🤔','Vet ikke']];
 const TEXTURES = ['Myk','Fast','Blå','Fersk'];
 const MILK_EMO = {Ku:'🐄', Geit:'🐐', Sau:'🐑'};
+
+/* ---------- ostevitse-pakka 🥁 --------------------------------------
+   Pappavitser om ost, for barn. Én tilfeldig fellesvits nederst på
+   siden per innlasting; i «Ny ost» følger vitsen melketypen du velger
+   (🐐 gir geitevitser) eller ostenavnet du skriver (brie → brie-vits).
+   Vises alltid med textContent, aldri innerHTML. */
+const OSTEVITSER = {
+  felles: [
+    'Hva kaller du en ost som ikke er din? – Nacho-ost!',
+    'Hvilken ost lages baklengs? – Edam!',
+    'Hvorfor gikk osten på trening? – Den ville bli ekstra sterk!',
+    'Hvordan var ostefesten? – Helt fant-OST-isk!',
+    'Hvorfor er ost så dårlig til å holde på hemmeligheter? – Den er full av hull!',
+    'Hvilken ost er søkkrik? – Rik-otta!',
+    'Hva heter det høyeste tårnet i Frankrike? – OST-eltårnet!',
+    'Hvor drar oster helst på ferie? – Til OST-errike!',
+    'Hva er ostens favorittfag på skolen? – Gym… det lukter nesten likt!',
+    'Hvorfor fikk ikke osten bli med på bussen? – Den luktet gamle sokker!',
+    'Hva sa osteskiva da den fikk skryt? – Takk, så gouda av deg!',
+    'Hvorfor er stinkende ost aldri ensom? – Alle vet alltid hvor den er!',
+    'Hva sier man når man tar bilde av en ost? – Smil og si «mennesker»!',
+    'Hva har ost og pappavitser til felles? – Begge blir bedre av å modne litt!',
+  ],
+  Ku: [
+    'Hva kaller du en ku som ikke gir melk? – Et MYSE-rium!',
+    'Hva ser kua på kino? – En MØØØ-vie!',
+    'Hvorfor har kyr bjeller? – Fordi hornene ikke virker!',
+    'Hva sier kua når osten er ferdig? – MØØØ-get bra jobba!',
+    'Hvor går kua på søndagstur? – På MØØØ-seum!',
+  ],
+  Geit: [
+    'Hva heter en geit som spiller i band? – GEIT-arist!',
+    'Hvorfor lager geita så god ost i fjellet? – Den er alltid på topp!',
+    'Hva sier geita når osten er perfekt? – Et MÆÆÆ-sterverk!',
+    'Hvorfor kan ikke geiter holde på hemmeligheter? – De MÆÆÆ-ler alt til alle!',
+    'Hvilken ost må du gjette deg fram til? – GJETosten!',
+    'Hva aker geitebarna på om vinteren? – KJE-lke!',
+  ],
+  Sau: [
+    'Hva sier sauen når osten smaker godt? – BÆÆÆ-re bra!',
+    'Hva heter sauens frisør? – BÆÆÆ-risøren!',
+    'Hvordan sovner en sau? – Den teller mennesker!',
+    'Hva sa sauen om den nye osten? – Rett og slett BÆÆÆ-st i test!',
+  ],
+  'Vet ikke': [
+    'Vet du ikke hvilket dyr? Da er det en mysteri-OST! 🕵️',
+    'Hemmelig melk? Da må det være en inkognit-OST!',
+  ],
+  // treffer på ostenavnet i «Ny ost» (foldet, så «Brie de Meaux» matcher «brie»)
+  navn: [
+    ['brie', [
+      'Forsiktig når du bærer denne… du må være brie-siktig!',
+      'Hva sa brien før prøven? – Dette går brie-lliant!',
+    ]],
+    ['camembert', [
+      'Hvordan lokker du en bjørn ut av skogen? – Camembert! («Come on, bear!») 🐻',
+    ]],
+    ['roquefort', [
+      'Roquefort er elendig på gjemsel – nesa finner den alltid! 👃',
+    ]],
+    ['comte', [
+      'Ostenes adel! Bare spør Greven av Monte Comté! 🎩',
+    ]],
+    ['tomme', [
+      'Denne osten blir det aldri tomt for – den er jo Tomme!',
+    ]],
+  ],
+};
+const vitsPick = arr => arr[Math.floor(Math.random()*arr.length)];
 
 /* ---------- innebygd ostedatabase (~95 franske klassikere) ----------
    Kuratert fra Wikidata (P186 melk, P1071/P138 opphavssted, P625 koordinater)
@@ -1412,7 +1486,7 @@ function openAdd(){
   $('addOrigin').value='';
   $('addPreview').classList.add('hidden');
   $('addFile').value='';
-  hideSuggestions(); renderOriginLine();
+  hideSuggestions(); renderOriginLine(); renderAddVits(true);
   const mr = $('milkRow'); mr.innerHTML='';
   MILKS.forEach(m=>{
     const b=document.createElement('button');
@@ -1436,10 +1510,24 @@ function closeAdd(){ hideSuggestions(); $('overlay-add').classList.add('hidden')
 function selectMilk(m){
   addMilk = m;
   [...$('milkRow').children].forEach((c,i)=>c.classList.toggle('on', MILKS[i]===m));
+  renderAddVits(true);
 }
 function selectTex(t){
   addTex = t;
   [...$('texRow').children].forEach(c=>c.classList.toggle('on', c.textContent===addTex));
+}
+/* vits i «Ny ost»: ostenavn-treff vinner over melketype. Uten force byttes
+   vitsen bare når kilden endres, så den ikke hopper for hvert tastetrykk. */
+let addVitsKey = null;
+function renderAddVits(force){
+  const f = fold($('addName').value);
+  let key = 'melk:'+addMilk[1], pool = OSTEVITSER[addMilk[1]] || OSTEVITSER.felles;
+  for(const [k, vitser] of OSTEVITSER.navn){
+    if(f.includes(k)){ key = 'navn:'+k; pool = vitser; break; }
+  }
+  if(!force && key===addVitsKey) return;
+  addVitsKey = key;
+  $('vits-add').textContent = vitsPick(pool);
 }
 
 /* ---------- osteforslag mens du skriver ---------- */
@@ -1460,6 +1548,7 @@ function cheeseSuggest(q){
 }
 function onAddNameInput(){
   if(addOriginPick){ addOriginPick=null; renderOriginLine(); }
+  renderAddVits();
   clearTimeout(sugTimer);
   sugTimer = setTimeout(renderSuggestions, 300);
 }
@@ -1492,6 +1581,7 @@ function pickSuggestion(c){
   addOriginPick = {origin:c.origin, lat:c.lat, lng:c.lng};
   hideSuggestions();
   renderOriginLine();
+  renderAddVits(true);
 }
 function renderOriginLine(){
   const line = $('originLine'), manual = $('originManual');
@@ -1571,6 +1661,11 @@ async function saveCheese(){
 }
 
 /* ---------- oppstart ---------- */
+{ // dagens ostevits — ny for hver sideinnlasting, samme på login og veggen
+  const v = vitsPick(OSTEVITSER.felles);
+  $('vits-login').textContent = v;
+  $('vits-wall').textContent = v;
+}
 if(SESS){ enterWall(); refreshBoard(); }
 else showWho();
 </script>
