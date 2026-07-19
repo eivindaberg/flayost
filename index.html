@@ -484,6 +484,16 @@ const OSTEVITSER = {
     'Hemmelig melk? Da må det være en inkognit-OST!',
     'Kanskje melka er fra en enhjørning? 🦄',
   ],
+  // personlige vitser til barna — vises på tavla (ca. annenhver gang) når
+  // akkurat det barnet er logget inn. Alltid positive!
+  barn: {
+    'Aslak':   'Hvorfor slapper ostene helt av når Aslak smaker? – Han tar alt helt a-SLAK-ka rolig – verdens kuleste smaker! 😎',
+    'Eira':    'Hvorfor jubler ostene for Eira? – Å bli smakt av henne er den største ÆRA-en en ost kan få! 👑',
+    'Ellinor': 'Hva drømmer enhver ost om? – Å bli smakt av Ellinor… ELLER NOe enda bedre? Finnes ikke! 💛',
+    'Aurora':  'Hvilken smaker lyser opp hele ostebordet som nordlyset? – AURORA, selvfølgelig! 🌌',
+    'Asta':    'Hvordan beskriver ostene en smaking med Asta? – Helt fant-ASTA-stisk! ⭐',
+    'Alfred':  'Hvorfor er ostebordet så fredelig når Alfred er der? – Med ALFRED blir det ALL FRED – og masse god ost! 🕊️',
+  },
   // treffer på ostenavnet i «Ny ost» (foldet, så «Brie de Meaux» matcher «brie»
   // og «Comté» matcher «comte»)
   navn: [
@@ -964,6 +974,10 @@ function logout(){
 function enterWall(){
   $('screen-login').classList.add('hidden');
   $('screen-wall').classList.remove('hidden');
+  // fersk vits på tavla ved hver innlogging; barna får sin egen personlige
+  // vits omtrent annenhver gang
+  const pers = SESS && OSTEVITSER.barn[SESS.name];
+  $('vits-wall').textContent = (pers && Math.random() < 0.5) ? pers : vitsPick(OSTEVITSER.felles);
   renderAll();
 }
 /* ---------- min side: bytt figur (gjenbruker flayost_login sin

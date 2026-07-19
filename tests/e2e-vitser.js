@@ -91,6 +91,27 @@ function check(name, ok, extra) {
   await page.waitForTimeout(100);
   check('tomt navn → tilbake til melkevits (sau)', pools.Sau.includes(await page.textContent('#vits-add')));
 
+  /* ---- personlige barnevitser på tavla ---- */
+  const barn = await page.evaluate(() => {
+    BOARD = { members: [], cheeses: [], ratings: [], stinks: [] };
+    const res = {};
+    for (const navn of ['Aslak', 'Eira', 'Ellinor', 'Aurora', 'Asta', 'Alfred', 'Eivind']) {
+      SESS = { name: navn, pin: '0000', avatar: '🦊', is_kid: true };
+      const sett = new Set();
+      for (let i = 0; i < 40; i++) { enterWall(); sett.add(document.getElementById('vits-wall').textContent); }
+      res[navn] = {
+        egen: [...sett].some(v => v === OSTEVITSER.barn[navn]),
+        felles: [...sett].some(v => OSTEVITSER.felles.includes(v)),
+        andres: [...sett].some(v => Object.entries(OSTEVITSER.barn).some(([n, j]) => n !== navn && v === j)),
+      };
+    }
+    return res;
+  });
+  for (const navn of ['Aslak', 'Eira', 'Ellinor', 'Aurora', 'Asta', 'Alfred']) {
+    check(`${navn} får sin egen vits (og fellesvitser)`, barn[navn].egen && barn[navn].felles && !barn[navn].andres, JSON.stringify(barn[navn]));
+  }
+  check('voksne får aldri barnevitser', !barn['Eivind'].egen && !barn['Eivind'].andres && barn['Eivind'].felles);
+
   await browser.close();
   console.log(`\n${pass} ok, ${fail} feil`);
   process.exit(fail ? 1 : 0);
