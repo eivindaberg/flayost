@@ -321,15 +321,18 @@
     <label class="blk">Din dom:</label>
     <div class="emorow big" id="dEmoRow"></div>
     <div class="scorehint" id="dHint"></div>
+    <button class="ghost small hidden" id="dUnrate" style="display:block; margin:0 auto;" onclick="unrate(false)">✕ Angre dommen min</button>
     <label class="blk">Stinkometeret 💨 <span class="mini">(hvor mye lukter den?)</span></label>
     <div class="emorow stink" id="dStinkRow"></div>
     <div class="scorehint" id="dStinkHint"></div>
+    <button class="ghost small hidden" id="dUnstink" style="display:block; margin:0 auto;" onclick="unrate(true)">✕ Angre lukta mi</button>
     <label class="blk">Smaksnotat <span class="mini">(valgfritt)</span></label>
     <div class="flex">
       <input type="text" id="dNote" maxlength="120" placeholder="F.eks. «smaker som sokker, men på en god måte»">
       <button class="ghost" onclick="saveNote()">Lagre</button>
     </div>
     <div class="rlist" id="dRatings"></div>
+    <button class="ghost" style="width:100%; margin-top:12px;" onclick="newVariantFromDetail()">🧀 Smakt en annen utgave? Legg inn som variant</button>
     <button class="danger hidden" id="dDelete" style="width:100%; margin-top:14px;" onclick="deleteCheese()">🗑 Slett osten (kun sjefene 👑)</button>
   </div>
 </div>
@@ -1838,6 +1841,47 @@ async function editOrigin(){
     refreshBoard();
   }catch(e){ toast('Fikk ikke lagret stedet – sjekk nettet'); }
 }
+/* Angre egen dom/lukt: osten går tilbake til «ikke smakt» for deg.
+   Fjerner også fra offline-køen så den ikke gjenoppstår ved synk. */
+async function unrate(stink){
+  const cid = detailId;
+  if(!cid) return;
+  try{
+    const res = await rpc('flayost_unrate', {p_name:SESS.name, p_pin:SESS.pin, p_cheese_id:cid, p_stink:!!stink});
+    if(!res || !res.ok){ toast('Fikk ikke angret – prøv igjen'); return; }
+    if(stink){
+      BOARD.stinks = (BOARD.stinks||[]).filter(s=>!(s.cheese_id===cid && s.member===SESS.name));
+      PENDING_STINK = PENDING_STINK.filter(p=>p.cheese_id!==cid);
+      localStorage.setItem(LS_PENDING_STINK, JSON.stringify(PENDING_STINK));
+    }else{
+      BOARD.ratings = BOARD.ratings.filter(r=>!(r.cheese_id===cid && r.member===SESS.name));
+      PENDING = PENDING.filter(p=>p.cheese_id!==cid);
+      localStorage.setItem(LS_PENDING, JSON.stringify(PENDING));
+    }
+    saveLocal();
+    renderAll();
+    toast(stink ? 'Lukta er fjernet 👃' : 'Dommen er fjernet – osten står som ikke smakt');
+  }catch(e){ toast('Sjekk nettet og prøv igjen'); }
+}
+/* «Smakt en annen utgave?» — åpner Ny ost ferdig utfylt med samme grunnavn,
+   melk, type og sted, med variantfeltet åpent og i fokus. Slik blir to kjøp
+   av samme ost to oster på tavla i stedet for én sammenblandet dom. */
+function newVariantFromDetail(){
+  const c = BOARD.cheeses.find(x=>x.id===detailId);
+  if(!c) return;
+  closeDetail();
+  openAdd();
+  const nv = splitVariant(c.name);
+  $('addName').value = nv.base;
+  const {milk, tex} = parseType(c.type);
+  const m = MILKS.find(x=>x[1]===milk);
+  if(m) selectMilk(m);
+  if(tex) selectTex(tex);
+  if(c.origin){ addOriginPick = {origin:c.origin, lat:c.lat??null, lng:c.lng??null}; renderOriginLine(); }
+  $('variantWrap').classList.remove('hidden');
+  renderAddVits(true);
+  setTimeout(()=>$('addVariant').focus(), 150);
+}
 function renderDetail(){
   const c = BOARD.cheeses.find(x=>x.id===detailId);
   if(!c){ closeDetail(); return; }
@@ -1861,11 +1905,13 @@ function renderDetail(){
     `<button class="${mine && mine.score===s?'on':''}" onclick="rate('${c.id}',${s},event)">${EMO[s]}</button>`
   ).join('');
   $('dHint').textContent = mine ? EMO[mine.score]+' '+EMO_WORD[mine.score] : 'Trykk på en smiley!';
+  $('dUnrate').classList.toggle('hidden', !mine);
   const mstk = myStink(c.id);
   $('dStinkRow').innerHTML = [1,2,3,4,5].map(s=>
     `<button class="${mstk && mstk.stink===s?'on':''}" onclick="rateStink('${c.id}',${s},event)">${STINK[s]}</button>`
   ).join('');
   $('dStinkHint').textContent = mstk ? STINK[mstk.stink]+' '+STINK_WORD[mstk.stink] : 'Lukt på osten og trykk!';
+  $('dUnstink').classList.toggle('hidden', !mstk);
   $('dNote').value = mine ? (mine.note||'') : '';
   const list = $('dRatings'); list.innerHTML='';
   const rs = ratingsFor(c.id).sort((a,b)=>b.score-a.score);

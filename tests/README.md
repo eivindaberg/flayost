@@ -42,6 +42,7 @@ ikke serveren i det hele tatt.
 | `smoke-vari` | Variant-/avstands-/utholdenhetsmerker |
 | `smoke-meta` | Én metalinje på ostekortene, «av …» kun i detaljark |
 | `smoke-familie` | Familiegrupper: RPC-rundtur, gruppert innlogging, Familieligaen per capita |
+| `smoke-angre` | Angre egen dom/lukt (ekte RPC) og «Smakt en annen utgave?»-knappen |
 
 `tools/` inneholder dev-skriptene som høstet Wikimedia-bildene til
 `CHEESES_FR` (`fetch-imgs.js`/`fix-imgs.js`) og resultatkartet
