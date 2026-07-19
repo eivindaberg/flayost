@@ -191,17 +191,6 @@
   .stamp .mini{font-size:11.5px;}
   .stamp.got{border-color:var(--ochre); border-style:solid; color:var(--ink); background:var(--ochre-soft); transform:rotate(-2deg); box-shadow:0 8px 24px rgba(80,50,10,.13);}
   .stamp.got:nth-child(even){transform:rotate(2deg);}
-  .poop-overlay{position:fixed; inset:0; z-index:999; pointer-events:none; overflow:hidden;}
-  .poop-big{position:absolute; left:50%; top:50%; font-size:44vmin; line-height:1; transform:translate(-50%,-50%) scale(0); animation:poopboom 2.8s cubic-bezier(.2,1.4,.4,1) forwards;}
-  @keyframes poopboom{
-    0%{transform:translate(-50%,-50%) scale(0) rotate(-30deg); opacity:1;}
-    45%{transform:translate(-50%,-50%) scale(1.15) rotate(8deg);}
-    60%{transform:translate(-50%,-50%) scale(.95) rotate(-4deg);}
-    80%{transform:translate(-50%,-50%) scale(1) rotate(0); opacity:1;}
-    100%{transform:translate(-50%,-50%) scale(1.05) rotate(0); opacity:0;}
-  }
-  .poop-drop{position:absolute; top:-14vh; line-height:1; animation:poopfall linear forwards;}
-  @keyframes poopfall{to{transform:translateY(125vh) rotate(360deg);}}
   /* regionkartet ligger som bakgrunn i stempelet, teksten oppå */
   .stamp{position:relative; overflow:hidden; min-height:96px; display:flex; flex-direction:column; justify-content:center;}
   .stamp .sreg{position:absolute; left:0; top:0; width:100%; height:100%;}
@@ -698,24 +687,6 @@ function toast(msg){
   clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove('show'), 2600);
 }
 function esc(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-/* 💩-dusj over hele skjermen når Eivind legger til en ost — familiens
-   interne spøk. Blokkerer ingenting (pointer-events:none) og rydder seg selv. */
-function poopSplash(){
-  const o = document.createElement('div');
-  o.className = 'poop-overlay';
-  o.innerHTML = '<span class="poop-big">💩</span>';
-  for(let i=0; i<22; i++){
-    const s = document.createElement('span');
-    s.className = 'poop-drop'; s.textContent = '💩';
-    s.style.left = (Math.random()*94)+'vw';
-    s.style.fontSize = (4+Math.random()*8)+'vmin';
-    s.style.animationDuration = (1.4+Math.random()*1.5)+'s';
-    s.style.animationDelay = (Math.random()*0.9)+'s';
-    o.appendChild(s);
-  }
-  document.body.appendChild(o);
-  setTimeout(()=>o.remove(), 3400);
-}
 function confetti(x, y, emoji, alt){
   for(let i=0;i<10;i++){
     const c = document.createElement('div');
@@ -2107,7 +2078,6 @@ async function saveCheese(){
     const res = await rpc('flayost_add_cheese', {p_name:SESS.name, p_pin:SESS.pin, p_cheese_name:name, p_type:type, p_photo:addPhoto, p_origin:origin, p_lat:lat, p_lng:lng});
     if(!res || !res.ok) throw new Error(res && res.error);
     closeAdd();
-    if(SESS.name.toLowerCase()==='eivind') poopSplash();
     toast(origin && lat===null
       ? `«${name}» er med – men fant ikke «${origin}» på kartet 🤷`
       : `«${name}» er med i smakingen! 🎉`);
