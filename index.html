@@ -1744,6 +1744,27 @@ function renderPass(){
       <span class="who">${esc(x.m.name)}</span>
       <span class="sc" style="font-size:16px; font-weight:800">${x.n} ${x.n===1?'merke':'merker'}</span></div>`;
   }).join('');
+  // familieligaen: gruppe mot gruppe, per capita (snitt merker per smaker) så
+  // store husstander ikke vinner på antall. Merkebasert — trenger ikke geojson,
+  // og ligger derfor UTENFOR stempelseksjonens lasteløp.
+  const famGrupper = new Map();
+  BOARD.members.forEach(m=>{
+    if(!m.family) return;
+    if(!famGrupper.has(m.family)) famGrupper.set(m.family, []);
+    famGrupper.get(m.family).push(m);
+  });
+  if(famGrupper.size>=2){
+    const rader = [...famGrupper.entries()].map(([f, medl])=>({
+      f, medl, snitt: medl.reduce((a,m)=>a+earnedBadgesFor(m.name).length, 0) / medl.length
+    })).sort((a,b)=>b.snitt-a.snitt || a.f.localeCompare(b.f,'no'));
+    const nivo = [...new Set(rader.map(r=>r.snitt))];
+    html += `<div class="fordeg-h">🏡 Familieligaen</div>` + rader.map(r=>{
+      const medal = ['🥇','🥈','🥉'][nivo.indexOf(r.snitt)] || '🏅';
+      return `<div class="rline"><span class="ava">${medal}</span><span class="who">${esc(r.f)}</span>
+        <span class="mini" style="margin-left:6px">${r.medl.length} ${r.medl.length===1?'smaker':'smakere'}</span>
+        <span class="sc" style="font-size:16px; font-weight:800">${r.snitt.toFixed(1)} merker/smaker</span></div>`;
+    }).join('');
+  }
   html += `<div class="fordeg-h">🛂 Stempler fra Frankrike</div>`;
   if(!regionsGeo){
     if(!passGeoTried){
@@ -1777,27 +1798,6 @@ function renderPass(){
       html += `<div class="stamp got"><span class="semo">🌍</span><b>Resten av verden</b>
         <span class="mini">${esc(abroad.map(c=>c.name).join(', '))}</span></div>`;
     html += '</div>';
-    // familieligaen: gruppe mot gruppe på samlet antall merker (vises først
-    // når minst to grupper finnes)
-    const famGrupper = new Map();
-    BOARD.members.forEach(m=>{
-      if(!m.family) return;
-      if(!famGrupper.has(m.family)) famGrupper.set(m.family, []);
-      famGrupper.get(m.family).push(m);
-    });
-    if(famGrupper.size>=2){
-      // per capita: snitt merker per smaker, så store husstander ikke vinner på antall
-      const rader = [...famGrupper.entries()].map(([f, medl])=>({
-        f, medl, snitt: medl.reduce((a,m)=>a+earnedBadgesFor(m.name).length, 0) / medl.length
-      })).sort((a,b)=>b.snitt-a.snitt || a.f.localeCompare(b.f,'no'));
-      const nivo = [...new Set(rader.map(r=>r.snitt))];
-      html += `<div class="fordeg-h">🏡 Familieligaen</div>` + rader.map(r=>{
-        const medal = ['🥇','🥈','🥉'][nivo.indexOf(r.snitt)] || '🏅';
-        return `<div class="rline"><span class="ava">${medal}</span><span class="who">${esc(r.f)}</span>
-          <span class="mini" style="margin-left:6px">${r.medl.length} ${r.medl.length===1?'smaker':'smakere'}</span>
-          <span class="sc" style="font-size:16px; font-weight:800">${r.snitt.toFixed(1)} merker/smaker</span></div>`;
-      }).join('');
-    }
     const others = BOARD.members.filter(m=>m.name!==SESS.name);
     if(others.length){
       html += `<div class="fordeg-h">👨‍👩‍👧‍👦 Familiens stempler</div>` + others.map(m=>{

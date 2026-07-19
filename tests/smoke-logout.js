@@ -1,0 +1,20 @@
+const { chromium } = require('playwright-core');
+const path = require('path'), os = require('os'), fs = require('fs');
+const base = path.join(os.homedir(), 'Library/Caches/ms-playwright');
+const dir = fs.readdirSync(base).find(d => d.startsWith('chromium_headless_shell'));
+const sub = fs.readdirSync(path.join(base, dir)).find(d => d.startsWith('chrome-'));
+(async () => {
+  const b = await chromium.launch({ executablePath: path.join(base, dir, sub, 'chrome-headless-shell') });
+  const p = await b.newPage();
+  await p.goto('http://localhost:8899/index.html', { waitUntil: 'domcontentloaded' });
+  await p.evaluate(() => { SESS = { name: 'E2E Fake', avatar: '🦊', is_kid: true }; enterWall(); openMe(); });
+  const label = await p.textContent('#overlay-me button.ghost[onclick*="logout"]');
+  if (!label.includes('Logg ut')) throw new Error('mangler Logg ut-knapp: ' + label);
+  await p.click('#overlay-me button.ghost[onclick*="logout"]');
+  await p.waitForTimeout(300);
+  const loginVisible = await p.$eval('#screen-login', e => !e.classList.contains('hidden'));
+  const meHidden = await p.$eval('#overlay-me', e => e.classList.contains('hidden'));
+  if (!loginVisible || !meHidden) throw new Error('logout førte ikke til innloggingsskjermen');
+  console.log('✅ Logg ut-knapp vises og logger ut til innloggingsskjermen');
+  await b.close();
+})().catch(e => { console.error('❌', e.message); process.exit(1); });
