@@ -40,6 +40,12 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log(ok ? '  ✅' : '
   });
   check('ingen ostebilder ser ut som by-/landemerkebilder', bad.length === 0, JSON.stringify(bad));
 
+  // norske oster utenfor CHEESES_FR (Jarlsberg m.fl.) skal også få bilde
+  const jarlsberg = await p.evaluate(() => webImgFor('Jarlsberg'));
+  check('Jarlsberg (utenfor det franske datasettet) får nettbilde', !!jarlsberg && jarlsberg.includes('upload.wikimedia.org'), jarlsberg);
+  const ukjentNorsk = await p.evaluate(() => webImgFor('Østavind'));
+  check('ost uten kjent bilde faller tilbake til null (ikke gjettet URL)', ukjentNorsk === null, ukjentNorsk);
+
   await b.close();
   console.log(`\n${pass} ok, ${fail} feil`); process.exit(fail ? 1 : 0);
 })().catch(e => { console.error('❌', e.message); process.exit(1); });

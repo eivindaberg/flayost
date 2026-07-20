@@ -801,11 +801,18 @@ function splitVariant(name){
   const m = String(name||'').match(/^(.*?)\s*\((.+)\)\s*$/);
   return m ? {base:m[1], vari:m[2]} : {base:name, vari:null};
 }
+/* Oster utenfor det franske datasettet som likevel har dukket opp på tavla
+   (norske oster o.l.) — egen liten liste, samme fold-matching som CHEESES_FR.
+   Legg til her etter hvert som familien registrerer nye ikke-franske oster. */
+const OTHER_CHEESE_IMGS = [
+  {name:'Jarlsberg', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Jarlsberg_cheese.jpg/500px-Jarlsberg_cheese.jpg'},
+];
 function webImgFor(name){
   const f = fold(name);
   if(!f) return null;
-  const hit = CHEESES_FR.find(c=>c.img && fold(c.name)===f)
-           || CHEESES_FR.find(c=>c.img && (f.includes(fold(c.name)) || fold(c.name).includes(f)));
+  const pool = CHEESES_FR.concat(OTHER_CHEESE_IMGS);
+  const hit = pool.find(c=>c.img && fold(c.name)===f)
+           || pool.find(c=>c.img && (f.includes(fold(c.name)) || fold(c.name).includes(f)));
   return hit ? hit.img : null;
 }
 function ratingsFor(id){ return BOARD.ratings.filter(r=>r.cheese_id===id); }
@@ -1106,7 +1113,7 @@ function renderAll(){
   else if(TAB==='pass') renderPass();
   else renderWall();
   if(detailId) renderDetail();
-  checkNewBadges();
+  syncBadgeBaseline();
 }
 function setTab(t){
   TAB = t;
@@ -1392,7 +1399,7 @@ async function rate(cheeseId, score, ev){
     existing.score = score; existing.updated_at = new Date().toISOString();
   }
   else BOARD.ratings.push({cheese_id:cheeseId, member:SESS.name, score, note:'', updated_at:new Date().toISOString(), first_score:score, changes:0});
-  saveLocal(); renderAll();
+  saveLocal(); checkNewBadges(); renderAll();
   if($('overlay-detail') && detailId===cheeseId) $('dHint').innerHTML = esc(EMO[score]+' '+EMO_WORD[score]) + hintUnrate(false);
   try{
     const res = await rpc('flayost_rate', {p_name:SESS.name, p_pin:SESS.pin, p_cheese_id:cheeseId, p_score:score, p_note:note});
@@ -1413,7 +1420,7 @@ async function rateStink(cheeseId, level, ev){
   const existing = BOARD.stinks.find(s=>s.cheese_id===cheeseId && s.member===SESS.name);
   if(existing){ existing.stink = level; existing.updated_at = new Date().toISOString(); }
   else BOARD.stinks.push({cheese_id:cheeseId, member:SESS.name, stink:level, updated_at:new Date().toISOString()});
-  saveLocal(); renderAll();
+  saveLocal(); checkNewBadges(); renderAll();
   if(detailId===cheeseId) $('dStinkHint').innerHTML = esc(STINK[level]+' '+STINK_WORD[level]) + hintUnrate(true);
   try{
     const res = await rpc('flayost_stink', {p_name:SESS.name, p_pin:SESS.pin, p_cheese_id:cheeseId, p_stink:level});
@@ -1821,13 +1828,22 @@ function earnedBadgesFor(navn){
   return BADGES.filter(b=>b.test(s));
 }
 function earnedBadges(){ return earnedBadgesFor(SESS.name); }
-function checkNewBadges(){
+/* Feirer nye merker KUN etter egen handling (rate/rateStink) — aldri fra
+   passive bakgrunnssynker (sideinnlasting, 90s auto-refresh, fane-bytte).
+   Grunnen: merker som «Sjelevenner»/«Fullt hus»/«Tvilling» avhenger av
+   ANDRES aktivitet, så en fersk sync kan avdekke «nye» merker uten at DU
+   har gjort noe — det opplevdes som stadige, uforklarlige popup-varsler
+   ved hver reload. syncBadgeBaseline() holder localStorage oppdatert
+   stille i mellomtiden, så ingenting «samler seg opp» og dukker opp
+   som en bråte varsler neste gang du faktisk rater noe. */
+function badgeSync(celebrate){
   if(!SESS) return;
   const key = 'flayost_badges_' + SESS.name;
   const earned = earnedBadges().map(b=>b.id);
   let prev = null;
   try{ prev = JSON.parse(localStorage.getItem(key)); }catch(e){}
   localStorage.setItem(key, JSON.stringify(earned));
+  if(!celebrate) return;
   if(!Array.isArray(prev)){
     if(earned.length) toast(`🏅 Du har ${earned.length} ${earned.length===1?'merke':'merker'} – se i 🛂 Pass!`);
     return;
@@ -1839,6 +1855,8 @@ function checkNewBadges(){
     + (nye.length>1 ? ` (+${nye.length-1} til)` : ''));
   confetti(innerWidth/2, innerHeight*0.35, b.emo, b.negative ? '😅' : '🏅');
 }
+function checkNewBadges(){ badgeSync(true); }
+function syncBadgeBaseline(){ badgeSync(false); }
 let passGeoTried = false;
 /* Mini-kart av regionen til passtempelet: geojson-omrisset projiseres inn i
    en 64×64-boks (enkel plate carrée, x skalert med cos av midtbredden så
