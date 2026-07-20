@@ -184,7 +184,14 @@
   /* ---------- ostepasset 🛂 ---------- */
   .passhead{display:flex; gap:12px; align-items:center; background:var(--card); border-radius:18px; padding:14px 16px; box-shadow:0 8px 24px rgba(80,50,10,.13);}
   .passhead .ava{font-size:38px;}
-  .badges,.stamps{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px;}
+  .badges,.stamps,.korter{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px;}
+  /* ---------- kort 🎴 ---------- */
+  .kort{background:var(--card); border-radius:18px; overflow:hidden; box-shadow:0 8px 24px rgba(80,50,10,.13); text-align:center; border:3px solid var(--ochre-soft);}
+  .kort .kimg{height:110px; background:var(--ochre-soft); background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; font-size:44px;}
+  .kort .kbody{padding:9px 8px 11px;}
+  .kort b{display:block; font-size:13px; margin-bottom:2px;}
+  .kort.unmatched{border-color:var(--line); opacity:.75;}
+  .kort.unmatched .kimg{filter:grayscale(1);}
   .badge{background:var(--card); border-radius:16px; padding:12px 10px; text-align:center; box-shadow:0 8px 24px rgba(80,50,10,.13);}
   .badge .bemo{font-size:34px; display:block; margin-bottom:4px;}
   .badge b{display:block; font-size:14px;}
@@ -297,6 +304,7 @@
       <button class="tab" id="tab-kart" onclick="setTab('kart')">🗺️ Kart</button>
       <button class="tab" id="tab-fordeg" onclick="setTab('fordeg')">✨ For deg</button>
       <button class="tab" id="tab-pass" onclick="setTab('pass')">🛂 Pass</button>
+      <button class="tab" id="tab-kort" onclick="setTab('kort')">🎴 Kort</button>
     </div>
     <div class="wall" id="wall"></div>
     <div id="round-wrap" class="hidden">
@@ -321,6 +329,7 @@
     </div>
     <div id="fordeg-wrap" class="hidden"><div id="fordeg"></div></div>
     <div id="pass-wrap" class="hidden"><div id="pass"></div></div>
+    <div id="kort-wrap" class="hidden"><div id="kort"></div></div>
     <p class="ostevits" id="vits-wall"></p>
     <button class="fab" id="fab-add" onclick="openAdd()">➕ Ny ost</button>
   </div>
@@ -797,7 +806,7 @@ const REGIONS_FR = [
 ];
 
 let SESS = null;                                   // {name, pin, avatar, is_kid}
-let BOARD = {members:[], cheeses:[], ratings:[], stinks:[], round:null};  // delt tavle (cache i localStorage)
+let BOARD = {members:[], cheeses:[], ratings:[], stinks:[], round:null, catalog_count:0};  // delt tavle (cache i localStorage)
 let TAB = 'beste';
 let pinBuf = '', pinMode = null, pinTarget = null; // 'login' | 'create'
 let newAva = AVATARS[0], newIsKid = true;
@@ -936,7 +945,7 @@ async function refreshBoard(){
   try{
     const res = await rpc('flayost_get_board', {p_name:SESS.name, p_pin:SESS.pin});
     if(res && res.ok){
-      BOARD = stripE2E({members:res.members, cheeses:res.cheeses, ratings:res.ratings, stinks:res.stinks||[], round:res.round||null});
+      BOARD = stripE2E({members:res.members, cheeses:res.cheeses, ratings:res.ratings, stinks:res.stinks||[], round:res.round||null, catalog_count:res.catalog_count||0});
       // plukk opp endringer i egen rolle/figur gjort på serveren (f.eks.
       // barn → voksen) uten at man må logge ut og inn igjen
       const me = BOARD.members.find(m=>m.name===SESS.name);
@@ -1214,10 +1223,12 @@ function renderAll(){
     $('kart-wrap').classList.add('hidden');
     $('fordeg-wrap').classList.add('hidden');
     $('pass-wrap').classList.add('hidden');
+    $('kort-wrap').classList.add('hidden');
     renderRoundList();
   }else if(TAB==='kart') renderKart();
   else if(TAB==='fordeg') renderForDeg();
   else if(TAB==='pass') renderPass();
+  else if(TAB==='kort') renderKort();
   else renderWall();
   $('fab-add').classList.toggle('hidden', restricted);
   if(detailId) renderDetail();
@@ -1297,14 +1308,16 @@ async function pickRoundExisting(cheeseId){
 }
 function setTab(t){
   TAB = t;
-  ['beste','nyeste','usmakt','kart','fordeg','pass'].forEach(x=>$('tab-'+x).classList.toggle('on', x===t));
-  $('wall').classList.toggle('hidden', t==='kart' || t==='fordeg' || t==='pass');
+  ['beste','nyeste','usmakt','kart','fordeg','pass','kort'].forEach(x=>$('tab-'+x).classList.toggle('on', x===t));
+  $('wall').classList.toggle('hidden', t==='kart' || t==='fordeg' || t==='pass' || t==='kort');
   $('kart-wrap').classList.toggle('hidden', t!=='kart');
   $('fordeg-wrap').classList.toggle('hidden', t!=='fordeg');
   $('pass-wrap').classList.toggle('hidden', t!=='pass');
+  $('kort-wrap').classList.toggle('hidden', t!=='kort');
   if(t==='kart') activateKart();
   else if(t==='fordeg') renderForDeg();
   else if(t==='pass') renderPass();
+  else if(t==='kort') renderKort();
   else renderWall();
 }
 function sortedCheeses(){
@@ -2158,6 +2171,46 @@ function renderPass(){
   wrap.innerHTML = html;
 }
 
+/* ---------- kortsamlingen 🎴 (Pokédex-laget, familie-delt) ----------
+   Viser ALDRI hele artskatalogen — kun kort for oster familien faktisk har
+   lagt til, matchet mot flayost_cheese_species server-side. Uoppdagede
+   arter er bare et tall («X av ~N oppdaget»), aldri en liste. */
+async function renderKort(){
+  const wrap = $('kort');
+  if(!SESS) return;
+  wrap.innerHTML = `<p class="mini center">Henter kortene …</p>`;
+  let res;
+  try{ res = await rpc('flayost_cheese_cards', {p_name:SESS.name, p_pin:SESS.pin}); }
+  catch(e){ res = null; }
+  if(TAB!=='kort') return; // rakk å bytte fane mens vi ventet
+  if(!res || !res.ok){
+    wrap.innerHTML = `<p class="mini center">Fikk ikke hentet kortene 🛜
+      <button class="ghost small" onclick="renderKort()">Prøv igjen</button></p>`;
+    return;
+  }
+  const cards = res.cards || [];
+  const funnet = cards.filter(c=>c.matched).length;
+  const total = BOARD.catalog_count || 0;
+  let html = `<div class="passhead"><span class="ava">🎴</span><div>
+    <b style="font-size:19px">Familiens kortsamling</b>
+    <div class="mini">${cards.length} ${cards.length===1?'kort':'kort'} samlet · ${funnet} av ~${total} franske oster oppdaget</div></div></div>`;
+  if(!cards.length){
+    html += `<p class="mini center" style="margin-top:14px">Ingen kort ennå — smak en ost for å starte samlingen! 🧀</p>`;
+  }else{
+    html += `<div class="fordeg-h">🧀 Kortene deres</div><div class="korter">` + cards.map(c=>{
+      const name = c.matched ? c.species_name : c.base_name;
+      const emo = MILK_EMO[c.milk] || '🧀';
+      const sub = c.matched ? `${emo} ${c.milk}${c.tex ? ' · '+c.tex : ''}` : 'Ny for katalogen! 🕵️';
+      const img = c.img;
+      return `<div class="kort${c.matched?'':' unmatched'}">
+        <div class="kimg"${img?` style="background-image:url('${esc(img)}')"`:''}>${img?'':'🧀'}</div>
+        <div class="kbody"><b>${esc(name)}</b><span class="mini">${esc(sub)}</span></div>
+      </div>`;
+    }).join('') + '</div>';
+  }
+  wrap.innerHTML = html;
+}
+
 /* =====================================================================
    DETALJER
    ===================================================================== */
@@ -2401,9 +2454,20 @@ function onAddNameInput(){
   clearTimeout(sugTimer);
   sugTimer = setTimeout(renderSuggestions, 300);
 }
-function renderSuggestions(){
+let sugGen = 0;
+async function renderSuggestions(){
+  const q = $('addName').value;
   const list = $('sugList');
-  const hits = cheeseSuggest($('addName').value);
+  if(fold(q).length<2){ list.classList.add('hidden'); list.innerHTML=''; return; }
+  const gen = ++sugGen;
+  let hits;
+  try{
+    const res = await rpc('flayost_cheese_search', {p_name:SESS.name, p_pin:SESS.pin, p_query:q});
+    hits = (res && res.ok) ? res.hits : cheeseSuggest(q);
+  }catch(e){
+    hits = cheeseSuggest(q); // offline/nettverksfeil: lokal fallback mot CHEESES_FR
+  }
+  if(gen !== sugGen) return; // et nyere søk er allerede i gang
   list.innerHTML='';
   if(!hits.length){ list.classList.add('hidden'); return; }
   hits.forEach(c=>{
