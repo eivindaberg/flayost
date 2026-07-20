@@ -43,6 +43,8 @@ ikke serveren i det hele tatt.
 | `smoke-meta` | Én metalinje på ostekortene, «av …» kun i detaljark |
 | `smoke-familie` | Familiegrupper: RPC-rundtur, gruppert innlogging, Familieligaen per capita |
 | `smoke-angre` | Angre egen dom/lukt (ekte RPC) og «Smakt en annen utgave?»-knappen |
+| `smoke-mening` | Meningsmerker (Snudd!/Berg-og-dal-bane) og negative «tvilsom heder»-merker |
+| `smoke-newbadges` | 8 nyeste merker (teksturer, balanse, streak, km, fullt hus) + AVATARS-listen |
 
 `tools/` inneholder dev-skriptene som høstet Wikimedia-bildene til
 `CHEESES_FR` (`fetch-imgs.js`/`fix-imgs.js`) og resultatkartet

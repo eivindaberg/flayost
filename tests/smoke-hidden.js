@@ -46,8 +46,8 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log(ok ? '  ✅' : '
   const html = await p.evaluate(() => document.getElementById('pass').innerHTML);
   check('opptjente skjulte merker vises med navn', html.includes('Ostepaparazzi') && html.includes('Smakstvilling') && html.includes('Førstesmaker'));
   check('uopptjente skjulte merker er usynlige', !html.includes('Pariserhjulet') && !html.includes('Øyhopperen') && !html.includes('HELE Frankrike'));
-  check('teaser viser «29 skjulte merker»', html.includes('29 skjulte merker'), html.match(/\d+ skjulte merker/)?.[0]);
-  check('teller viser av 70 merker', html.includes('av 70 merker'), html.match(/av \d+ merker/)?.[0]);
+  check('teaser viser «34 skjulte merker»', html.includes('34 skjulte merker'), html.match(/\d+ skjulte merker/)?.[0]);
+  check('teller viser av 78 merker', html.includes('av 78 merker'), html.match(/av \d+ merker/)?.[0]);
 
   // justering: smak- og lukterad skal ha lik venstrekant på knappene
   await p.evaluate(() => setTab('nyeste'));

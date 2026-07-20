@@ -419,7 +419,23 @@ const EMO = {1:'🤢', 2:'😕', 3:'🙂', 4:'😋', 5:'🤩'};
 const EMO_WORD = {1:'Æsj!', 2:'Nja…', 3:'Helt grei', 4:'Nam!', 5:'BESTE OSTEN!'};
 const STINK = {1:'🌸', 2:'🍃', 3:'👃', 4:'🧦', 5:'💩'};
 const STINK_WORD = {1:'Lukter blomster!', 2:'Nesten ingen lukt', 3:'Lukter ost', 4:'Gamle sokker…', 5:'RUMPE!!! 🍑'};
-const AVATARS = ['🦊','🐰','🦁','🐸','🐼','🦄','🐙','🦖','🐶','🐱','🐭','🐨','🐷','🐵','🦉','🐢','🦋','🐞','🐳','🦩','🌻','🍓','⚽','🚀','🎨','🎸','👑','🥐'];
+const AVATARS = [
+  // dyr
+  '🦊','🐰','🦁','🐸','🐼','🦄','🐙','🦖','🐶','🐱','🐭','🐨','🐷','🐵','🦉','🐢','🦋','🐞','🐳','🦩',
+  '🐺','🦝','🐻','🐹','🐔','🐧','🦆','🦢','🦜','🦇','🐴','🦓','🦌','🦒','🐘','🦏','🦛','🐪','🐫','🦘',
+  '🦥','🦦','🦨','🦡','🐿️','🦔','🐍','🦎','🐊','🐠','🐟','🐡','🦈','🐬','🦭','🐋','🦑','🦐','🦀','🐚',
+  '🐝','🐜','🕷️','🦂','🐌',
+  // mat
+  '🍓','🥐','🍕','🍔','🌮','🌭','🍿','🧇','🥞','🍩','🍪','🍦','🍨','🍰','🎂','🧁','🍫','🍬','🍭','🍯',
+  '🥨','🍞','🥖','🥯','🍇','🍈','🍉','🍊','🍋','🍌','🍍','🥭','🍎','🍏','🍐','🍑','🍒','🥑','🥦','🌽',
+  // natur
+  '🌻','🌸','🌺','🌼','🌷','🌹','🌈','🔥','⭐','🌙','☀️','❄️','⚡','🌊','🍀','🌵','🌴','🌲','🍄',
+  // moro
+  '⚽','🏀','🏈','🎾','🏐','🎱','🏓','🎯','🎮','🎲','🎨','🎸','🎹','🥁','🚀','🛸','🚁','🚗','🏎️','🚲',
+  '⛵','🏆','🥇','🎈','🎉','🎁','💎','🔮','🕹️','📷','🎧','🧩',
+  // fantasi
+  '👑','🧚','🧞','🦸','🥷','🧙','🤖','👻','👽','💀',
+];
 const MILKS = [['🐄','Ku'],['🐐','Geit'],['🐑','Sau'],['🤔','Vet ikke']];
 const TEXTURES = ['Myk','Fast','Blå','Fersk'];
 const MILK_EMO = {Ku:'🐄', Geit:'🐐', Sau:'🐑'};
@@ -489,54 +505,64 @@ const OSTEVITSER = {
   // Alltid positive!
   barn: {
     'Aslak': [
-      'Hvorfor slapper ostene helt av når Aslak smaker? – Han tar alt helt a-SLAK-ka rolig – verdens kuleste smaker! 😎',
-      'Hva sier ostene når Aslak kommer? – Nå blir det SLAKk i alle skuldre – for han er kul som is! 🧊',
-      'Hvorfor er Aslak best på Stinkometeret? – Han lar aldri noe SLÅ ham ut av kurs! 👃',
+      'Hvorfor er Aslak alltid overraskende treffsikker? – Navnet hans rimer jo perfekt på SMAK! 🎯',
+      'Hva sier ostene når Aslak dukker opp? – Endelig kan vi SLAKKe helt av, han dømmer alltid rettferdig! 😌',
+      'Hvorfor er Aslak kongen av Stinkometeret? – Ingenting SLÅR ham ut av kurs, uansett hvor sterkt det lukter! 👃',
+      'Hvem har det roligste blikket i hele familien når osten skal vurderes? – Aslak, han tar alltid ting med knusende ro! 🧘',
     ],
     'Eira': [
-      'Hvorfor jubler ostene for Eira? – Å bli smakt av henne er den største ÆRA-en en ost kan få! 👑',
-      'Hva heter tidsalderen der alle oster smiler? – EIRA-en da Eira smakte dem! ✨',
-      'Hvorfor er Eira best til å finne den perfekte osten? – Hun har et skarpt ØYE og et enda skarpere smaksinn! 👀',
+      'Hvorfor jubler ostene når Eira kommer? – Å bli smakt av henne er den største ÆRA-en en ost kan få! 👑',
+      'Hva gjør Eira med enhver osteduell? – Hun SEIRAr alltid med den mest ærlige dommen! 🏆',
+      'Hvem har det skarpeste blikket ved ostedisken? – Eira, hun ser kvalitet på lang avstand! 👀',
+      'Hva er Eiras hemmelighet som dommer? – Hun tar seg alltid god tid, akkurat som en fin ost trenger modning! ⏳',
     ],
     'Ellinor': [
       'Hva drømmer enhver ost om? – Å bli smakt av Ellinor… ELLER NOe enda bedre? Finnes ikke! 💛',
-      'Hvorfor er Ellinor ostenes favoritt? – Det finnes ELLER NOen bedre smaker, men de har ikke funnet dem ennå! 😄',
-      'Hva sier osten når Ellinor smiler? – Endelig, ELLER NOe å glede seg til hele dagen! 🌟',
+      'Hvorfor er Ellinor stolt av norske oster? – Fordi hun har hele NOR-ge gjemt i navnet sitt! 🇳🇴',
+      'Hva sier ostene om Ellinors smaksnotater? – De er alltid de morsomste å lese på hele tavla! 📝',
+      'Hvem har den mest smittsomme latteren under ostesmakingen? – Ellinor, hele bordet ler lenge etter henne! 😄',
     ],
     'Aurora': [
       'Hvilken smaker lyser opp hele ostebordet som nordlyset? – AURORA, selvfølgelig! 🌌',
-      'Hvorfor er Auroras favorittost alltid best? – Hun gir den samme magien som et nordlys på himmelen! 💚',
-      'Hva kaller ostene Auroras smilefjes? – Den vakreste lysshowet i hele kjøleskapet! ✨',
+      'Hvorfor smaker alt litt bedre tidlig med Aurora? – Hun er jo oppkalt etter selve morgenrøden! 🌅',
+      'Hva kaller familien Auroras smilefjes? – Den vakreste lysshowet i hele kjøleskapet! ✨',
+      'Hvem finner alltid den vakreste osten på tavla? – Aurora, hun har øye for det som skinner! 💫',
     ],
     'Asta': [
-      'Hvordan beskriver ostene en smaking med Asta? – Helt fant-ASTA-stisk! ⭐',
-      'Hva sier osten når Asta smaker den? – Dette blir en fant-ASTA-tisk dag! 🌟',
-      'Hvorfor er Asta så flink til å dømme oster? – Hun har rett og slett fant-ASTA-tisk smakssans! 🏆',
+      'Hvordan beskriver ostene en smaking med Asta? – Helt fantastisk, akkurat som navnet hennes! ⭐',
+      'Hvem har den kjappeste smaksdommen i hele familien? – Asta, hun er rask som lynet når hun har bestemt seg! ⚡',
+      'Hva sier de andre ostene når Asta kommer på besøk? – Nå blir dette garantert en flott dag! 🌟',
+      'Hvorfor er Astas smaksnotater alltid gøy å lese? – Hun finner de morsomste ordene for hver eneste ost! 🖋️',
     ],
     'Alfred': [
       'Hvorfor er ostebordet så fredelig når Alfred er der? – Med ALFRED blir det ALL FRED – og masse god ost! 🕊️',
-      'Hva bringer Alfred til enhver smaking? – ALL FRED og god stemning, pluss et skarpt smaksinn! 🌿',
-      'Hvorfor liker alle ostene Alfred? – Han gir dem ALL FRED de fortjener! 🍃',
+      'Hvem gir alltid de klokeste rådene om hvilken ost som er best? – Alfred, familiens vise osteekspert! 🦉',
+      'Hva er Alfreds hemmelige våpen som dommer? – Et rolig gemytt og et skarpt smaksinn, sjelden kombinasjon! 🎯',
+      'Hvorfor gleder alle seg når Alfred åpner appen? – Det betyr ro, humor og en ny favorittost på vei! 📱',
     ],
     'Eivind': [
       'Hvem blåser frisk bris inn i hver ostesmaking? – EI VIND… nei, EIVIND! 🌬️',
-      'Hvorfor er Eivinds osteanmeldelser så friske? – Han har alltid en EI VIND av nye ideer! 🍃',
-      'Hva sier osten når Eivind kommer? – Endelig litt frisk EI VIND i smakingen! 💨',
+      'Hvorfor har Eivind alltid noe nytt å komme med? – Han finner stadig nye ideer til appen og tavla! 💡',
+      'Hva sier osten når sjefen selv kommer for å smake? – Endelig, nå blir det skikkelig fest! 🎉',
+      'Hvem har bygget hele osteappen med egne hender? – Eivind, familiens aller flinkeste osteingeniør! 🛠️',
     ],
     'Ida': [
       'Når er ostenes favorittdag? – I DAg – alltid når Ida smaker! ☀️',
-      'Hvorfor gleder ostene seg alltid? – Fordi det er I DAg Ida kommer på besøk! 🌞',
-      'Hva sier osten om Idas dommer? – De er alltid rett I DAg, blinken! 🎯',
+      'Hva er det beste tidspunktet å smake ost på? – Akkurat nå, ifølge Ida, som alltid lever i nuet! 🕐',
+      'Hva sier osten om Idas dommer? – De er alltid rett i blinken, treffsikre som få! 🎯',
+      'Hvorfor stoler alle på Idas smaksdommer? – Hun har den mest ærlige tunga i hele familien! 👅',
     ],
     'Fredrik': [
       'Hvilken smaker er både FRED-elig og RIK på god smak? – FREDRIK, så klart! 🕊️',
-      'Hvorfor er det alltid god stemning når Fredrik dømmer? – Han bringer FRED, og han er RIK på gode ord! 💬',
-      'Hva sier ostene om Fredriks smaksnotater? – FRED-elig gode og RIK-tig morsomme! 📝',
+      'Hva er Fredriks hemmelighet som ostedommer? – Et riktig godt øye for kvalitet og masse tålmodighet! 👁️',
+      'Hva sier familien om Fredriks smaksnotater? – De er alltid rike på detaljer og morsomme observasjoner! 📚',
+      'Hvorfor er det aldri krangel når Fredrik er til stede? – Han holder freden, selv når meningene om ostene er delte! ☮️',
     ],
     'Bjørg': [
       'Hvem BERGer enhver ostekveld? – BJØRG, selvfølgelig! 🦸',
-      'Hvorfor er Bjørg så trygg å stole på? – Hun BERGer familiens ostekvelder hver gang! 🏔️',
-      'Hva sier ostene når Bjørg kommer? – Nå BERGer vi denne smakingen sammen! 🎉',
+      'Hvorfor er Bjørgs smaksdommer så solide? – De står støtt som et berg, akkurat som navnet hennes! 🏔️',
+      'Hva sier familien om Bjørgs bidrag til ostesmakingen? – Hun er selve grunnfjellet vi alle stoler på! 🪨',
+      'Hvorfor spør alle Bjørg til råds om en vanskelig ost? – Hun har visdom som et gammelt fjell, og smak som gull! ✨',
     ],
   },
   // treffer på ostenavnet i «Ny ost» (foldet, så «Brie de Meaux» matcher «brie»
@@ -1634,6 +1660,15 @@ const BADGES = [
   {id:'sistemann',emo:'🐌', name:'Sistemann til bordet', how:'Fem oster der alle andre rakk å dømme før deg 😅',   hidden:true, negative:true, test:s=>s.sistemann>=5},
   {id:'luktblind',emo:'🫥', name:'Luktblind',        how:'Ti dommer uten å bruke stinkometeret én eneste gang 😅', hidden:true, negative:true, test:s=>s.luktblind},
   {id:'flokkdyr', emo:'🐑', name:'Flokkdyret',       how:'Du mener alltid akkurat det samme som alle andre 😅',    hidden:true, negative:true, test:s=>s.flokkdyr},
+  // flere skjulte merker
+  {id:'tekstur',  emo:'🧵', name:'Teksturmester',    how:'Du har dømt myk, fast, blå OG fersk ost!',               hidden:true, test:s=>s.allTex},
+  {id:'jevnt',    emo:'⚖️', name:'Balansekunstner',  how:'Minst to av HVER dom (🤢😕🙂😋🤩) — helt jevnt fordelt!', hidden:true, test:s=>s.jevnt},
+  {id:'forsiste', emo:'📖', name:'Fra start til slutt', how:'Du har dømt både den aller første OG den nyeste osten på tavla!', hidden:true, test:s=>s.forsteSiste},
+  {id:'rad3',     emo:'🔥', name:'Tre på rad',       how:'Du har dømt oster tre dager på rad!',                    hidden:true, test:s=>s.bestRad>=3},
+  {id:'rad7',     emo:'🏅', name:'Ei hel uke',       how:'Du har dømt oster SYV dager på rad – utrolig utholdenhet!', hidden:true, test:s=>s.bestRad>=7},
+  {id:'kilomega', emo:'🌍', name:'Kilometerkonge',   how:'Ostene dine har til sammen reist over 10 000 km til Flayosc!', hidden:true, test:s=>s.totalKm>=10000},
+  {id:'fulltHus', emo:'🏠', name:'Fullt hus',        how:'Du har dømt HVER ENESTE ost som er lagt på tavla!',      hidden:true, test:s=>s.fulltHus},
+  {id:'notat20',  emo:'📚', name:'Osteforfatteren',  how:'Du har skrevet tjue smaksnotater!',                      hidden:true, test:s=>s.notater>=20},
 ];
 
 /* regioner der medlemmet har dømt en ost med koordinater — [{f, oster}] */
@@ -1702,12 +1737,13 @@ function badgeStats(navn = SESS.name){
   const parmeser = new Set(cheeses.filter(c=>fold(c.name).includes('parm')).map(c=>fold(c.name))).size;
   const cheddarer = new Set(cheeses.filter(c=>fold(c.name).includes('cheddar')).map(c=>fold(c.name))).size;
   // avstand fra hjemmebasen i Flayosc (43.5578, 6.3903)
-  let far1000 = false, near100 = false;
+  let far1000 = false, near100 = false, totalKm = 0;
   cheeses.forEach(c=>{
     if(!hasCoords(c)) return;
     const km = kmDist(43.5578, 6.3903, +c.lat, +c.lng);
     if(km>1000) far1000 = true;
     if(km<100) near100 = true;
+    totalKm += km;
   });
   const brave3 = new Set(mine.filter(r=>r.score>=4 && BOARD.ratings.some(o=>
     o.cheese_id===r.cheese_id && o.member!==navn && o.score===1)).map(r=>r.cheese_id)).size;
@@ -1726,6 +1762,22 @@ function badgeStats(navn = SESS.name){
     const andre = BOARD.ratings.filter(o=>o.cheese_id===r.cheese_id && o.member!==navn);
     return r.score === Math.round(andre.reduce((a,o)=>a+o.score,0)/andre.length);
   });
+  // nye merker: alle teksturer, jevnt fordelte dommer, første+siste ost,
+  // sammenhengende dager, kilometersamler, fullt hus
+  const allTex = ['Myk','Fast','Blå','Fersk'].every(t=>texs.has(t));
+  const scoreCounts = {1:0,2:0,3:0,4:0,5:0};
+  mine.forEach(r=>scoreCounts[r.score]++);
+  const jevnt = Object.values(scoreCounts).every(n=>n>=2);
+  const forsteSiste = BOARD.cheeses.length>=2 &&
+    mineIds.has(BOARD.cheeses[0].id) && mineIds.has(BOARD.cheeses[BOARD.cheeses.length-1].id);
+  const dagerListe = Object.keys(perDag).sort();
+  let paRad = 1, bestRad = dagerListe.length?1:0;
+  for(let i=1;i<dagerListe.length;i++){
+    const diff = (new Date(dagerListe[i]) - new Date(dagerListe[i-1])) / 86400000;
+    paRad = diff===1 ? paRad+1 : 1;
+    if(paRad>bestRad) bestRad = paRad;
+  }
+  const fulltHus = BOARD.cheeses.length>0 && mine.length===BOARD.cheeses.length;
   return {
     myRatings: mine.length,
     milks: ['Ku','Geit','Sau'].filter(m=>milks.has(m)).length,
@@ -1758,6 +1810,7 @@ function badgeStats(navn = SESS.name){
     snudd, exfan, bergdal, sistemann, flokkdyr,
     surmuler: mine.length>=8 && snittDom<2.3,
     luktblind: mine.length>=10 && myStk.length===0,
+    allTex, jevnt, forsteSiste, bestRad, totalKm, fulltHus,
     dager: Object.keys(perDag).length,
     harParis: regionNavn.has('Île-de-France'),
     harKorsika: regionNavn.has('Corse'),

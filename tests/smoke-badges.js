@@ -34,7 +34,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log(ok ? '  ✅' : '
   await p.waitForTimeout(2500);
   let html = await p.evaluate(() => document.getElementById('pass').innerHTML);
   check('opptjente hemmelige merker avsløres', html.includes('Hele følelsesregisteret') && !html.includes('Hemmelig merke'));
-  check('teller viser av 70 merker', html.includes('av 70 merker'));
+  check('teller viser av 78 merker', html.includes('av 78 merker'));
 
   // fattig bo: hemmelige skal vises som ❓ uten å lekke navn
   await p.evaluate(() => {
