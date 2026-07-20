@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<title>Ostepreview 🧀 (kun lokalt, ikke en del av appen)</title>
+<style>
+  :root{color-scheme:light dark}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;margin:0;padding:24px;background:#faf6ef;color:#2a2117}
+  h1{margin:0 0 4px}
+  p.sub{margin:0 0 20px;opacity:.7}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
+  .card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.12);border:2px solid transparent}
+  .card.new{border-color:#e0a030}
+  .imgwrap{aspect-ratio:1;background:#eee;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+  .imgwrap img{width:100%;height:100%;object-fit:cover}
+  .mystery{font-size:40px;opacity:.3}
+  .newbadge{position:absolute;top:6px;right:6px;background:#e0a030;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}
+  .body{padding:8px 10px 10px}
+  .name{font-weight:700;font-size:13px;line-height:1.25;margin:0 0 4px}
+  .meta{font-size:11px;opacity:.65;display:flex;gap:6px;flex-wrap:wrap}
+  .origin{font-size:11px;opacity:.55;margin-top:3px}
+  .stats{margin:16px 0 20px;font-size:14px}
+  .err{color:#b00;font-family:monospace;white-space:pre-wrap}
+  .toolbar{margin:0 0 16px;display:flex;gap:8px;align-items:center}
+  input{padding:6px 10px;border-radius:8px;border:1px solid #ccc;font-size:14px;min-width:220px}
+</style>
+</head>
+<body>
+<h1>🧀 Ostepreview — Pokédex-utkast</h1>
+<p class="sub">Kun et lokalt QA-verktøy (ikke en del av selve appen) — leser <code>CHEESES_FR</code> direkte fra din uncommitted <code>index.html</code> ved siden av, så det du ser her er nøyaktig det som havner live.</p>
+<div class="stats" id="stats">Laster …</div>
+<div class="toolbar">
+  <input id="q" placeholder="Filtrer på navn/opprinnelse …">
+  <label><input type="checkbox" id="onlyNew"> Vis kun nye</label>
+</div>
+<div id="err" class="err"></div>
+<div class="grid" id="grid"></div>
+
+<script>
+const NEW_NAMES = new Set(['Emmental français Est-Central', 'Gruyère français', "Tome fraîche de l'Aubrac"]);
+const MILK_EMOJI = {Ku:'🐄', Geit:'🐐', Sau:'🐑'};
+
+async function load(){
+  const res = await fetch('../index.html');
+  const html = await res.text();
+  const m = html.match(/const CHEESES_FR = (\[[\s\S]*?\n\]);/);
+  if(!m) throw new Error('Fant ikke CHEESES_FR i index.html — sjekk at filstien/regexen fortsatt stemmer.');
+  const CHEESES_FR = new Function('return ' + m[1])();
+  return CHEESES_FR;
+}
+
+function card(c){
+  const isNew = NEW_NAMES.has(c.name);
+  const div = document.createElement('div');
+  div.className = 'card' + (isNew ? ' new' : '');
+  div.dataset.name = c.name.toLowerCase();
+  div.dataset.origin = (c.origin||'').toLowerCase();
+  div.innerHTML = `
+    <div class="imgwrap">
+      ${c.img ? `<img src="${c.img}" loading="lazy" alt="${c.name}">` : `<span class="mystery">🧀</span>`}
+      ${isNew ? '<span class="newbadge">NY</span>' : ''}
+    </div>
+    <div class="body">
+      <p class="name">${c.name}</p>
+      <div class="meta">
+        <span>${MILK_EMOJI[c.milk]||'❓'} ${c.milk}</span>
+        <span>· ${c.tex||'?'}</span>
+      </div>
+      <div class="origin">${c.origin||''}</div>
+    </div>`;
+  return div;
+}
+
+function applyFilter(){
+  const q = document.getElementById('q').value.trim().toLowerCase();
+  const onlyNew = document.getElementById('onlyNew').checked;
+  document.querySelectorAll('.card').forEach(el=>{
+    const matchesQ = !q || el.dataset.name.includes(q) || el.dataset.origin.includes(q);
+    const matchesNew = !onlyNew || el.classList.contains('new');
+    el.style.display = (matchesQ && matchesNew) ? '' : 'none';
+  });
+}
+
+load().then(cheeses=>{
+  const noImg = cheeses.filter(c=>!c.img).length;
+  document.getElementById('stats').textContent =
+    `${cheeses.length} oster totalt · ${NEW_NAMES.size} nye i denne runden · ${noImg} uten bilde (mystery-kort)`;
+  const grid = document.getElementById('grid');
+  cheeses.forEach(c=>grid.appendChild(card(c)));
+  document.getElementById('q').addEventListener('input', applyFilter);
+  document.getElementById('onlyNew').addEventListener('change', applyFilter);
+}).catch(e=>{
+  document.getElementById('err').textContent = 'Feil: ' + e.message;
+});
+</script>
+</body>
+</html>

@@ -647,9 +647,12 @@ const OSTEVITSER = {
 };
 const vitsPick = arr => arr[Math.floor(Math.random()*arr.length)];
 
-/* ---------- innebygd ostedatabase (~95 franske klassikere) ----------
+/* ---------- innebygd ostedatabase (94 franske klassikere) ----------
    Kuratert fra Wikidata (P186 melk, P1071/P138 opphavssted, P625 koordinater)
-   + håndsjekkede koordinater. lat/lng peker på byen/området osten kommer fra. */
+   + håndsjekkede koordinater. lat/lng peker på byen/området osten kommer fra.
+   2026-07-20: +3 IGP-oster (Emmental français Est-Central, Gruyère français,
+   Tome fraîche de l'Aubrac) — full diff mot alle 45 AOP + 13 IGP-navn viste
+   AOP-laget allerede var 100% dekket; kun disse 3 var reelt nye. */
 const CHEESES_FR = [
   // myke kumelksoster
   {name:'Camembert de Normandie', milk:'Ku', origin:'Camembert (Normandie)', lat:48.8622, lng:0.1717, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Camembert_de_Normandie_%28AOP%29_10.jpg/500px-Camembert_de_Normandie_%28AOP%29_10.jpg'},
@@ -702,6 +705,8 @@ const CHEESES_FR = [
   {name:"P'tit Basque", milk:'Sau', origin:'Pays basque', lat:43.3500, lng:-1.2000, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Paris%2C_fromage_Istara_P%27tit_Basque_au_march%C3%A9.JPG/500px-Paris%2C_fromage_Istara_P%27tit_Basque_au_march%C3%A9.JPG'},
   {name:'Abbaye de Belloc', milk:'Sau', origin:'Urt (Pays basque)', lat:43.4900, lng:-1.2900, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Abbaye-de-Belloc.JPG/500px-Abbaye-de-Belloc.JPG'},
   {name:'Tomme de brebis', milk:'Sau', origin:'Pyrénées', lat:43.0000, lng:-0.6000, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Wikicheese_-_Roquefort_-_20150417_-_002.jpg/500px-Wikicheese_-_Roquefort_-_20150417_-_002.jpg'},
+  {name:'Emmental français Est-Central', milk:'Ku', origin:'Besançon (Franche-Comté)', lat:47.2380, lng:6.0243, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Emmental_015.jpg/500px-Emmental_015.jpg'},
+  {name:'Gruyère français', milk:'Ku', origin:'Pontarlier (Doubs)', lat:46.9058, lng:6.3549, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Meules_gruyere.JPG/500px-Meules_gruyere.JPG'},
   // blå
   {name:'Roquefort', milk:'Sau', origin:'Roquefort-sur-Soulzon', lat:43.9767, lng:2.9889, tex:'Blå', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Wikicheese_-_Roquefort_-_20150417_-_002.jpg/500px-Wikicheese_-_Roquefort_-_20150417_-_002.jpg'},
   {name:"Bleu d'Auvergne", milk:'Ku', origin:'Auvergne', lat:45.7000, lng:3.1000, tex:'Blå', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Wikicheese_Clermont-Ferrand_-_Bleu_d%27Auvergne_20220825-02.jpg/500px-Wikicheese_Clermont-Ferrand_-_Bleu_d%27Auvergne_20220825-02.jpg'},
@@ -747,7 +752,8 @@ const CHEESES_FR = [
   {name:'Boursin', milk:'Ku', origin:'Croisy-sur-Eure (Normandie)', lat:49.0167, lng:1.3833, tex:'Fersk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Boursin-cheese-3494_1280.jpg/500px-Boursin-cheese-3494_1280.jpg'},
   {name:'La vache qui rit', milk:'Ku', origin:'Lons-le-Saunier (Jura)', lat:46.6744, lng:5.5539},
   {name:'Kiri', milk:'Ku', origin:'Lons-le-Saunier (Jura)', lat:46.6744, lng:5.5539, tex:'Fersk'},
-  {name:'Cancoillotte', milk:'Ku', origin:'Franche-Comté', lat:47.0000, lng:6.0000, tex:'Fersk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Cancoillotte_001.jpg/500px-Cancoillotte_001.jpg'}
+  {name:'Cancoillotte', milk:'Ku', origin:'Franche-Comté', lat:47.0000, lng:6.0000, tex:'Fersk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Cancoillotte_001.jpg/500px-Cancoillotte_001.jpg'},
+  {name:"Tome fraîche de l'Aubrac", milk:'Ku', origin:'Laguiole (Aubrac)', lat:44.6842, lng:2.8472, tex:'Fersk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Tome_fra%C3%AEche.jpg/500px-Tome_fra%C3%AEche.jpg'}
 ];
 
 /* ---------- franske regioner til «Hvor er den fra?» ----------
