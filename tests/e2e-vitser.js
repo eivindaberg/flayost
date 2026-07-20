@@ -95,22 +95,24 @@ function check(name, ok, extra) {
   const barn = await page.evaluate(() => {
     BOARD = { members: [], cheeses: [], ratings: [], stinks: [] };
     const res = {};
-    for (const navn of ['Aslak', 'Eira', 'Ellinor', 'Aurora', 'Asta', 'Alfred', 'Eivind']) {
+    for (const navn of ['Aslak', 'Eira', 'Ellinor', 'Aurora', 'Asta', 'Alfred', 'Eivind', 'Ida', 'Fredrik', 'Bjørg', 'Nykommer']) {
       SESS = { name: navn, pin: '0000', avatar: '🦊', is_kid: true };
       const sett = new Set();
       for (let i = 0; i < 40; i++) { enterWall(); sett.add(document.getElementById('vits-wall').textContent); }
       res[navn] = {
-        egen: [...sett].some(v => v === OSTEVITSER.barn[navn]),
+        egen: [...sett].some(v => (OSTEVITSER.barn[navn] || []).includes(v)),
+        alleUlike: (OSTEVITSER.barn[navn] || []).length > 1 && [...sett].filter(v => (OSTEVITSER.barn[navn] || []).includes(v)).length > 1,
         felles: [...sett].some(v => OSTEVITSER.felles.includes(v)),
-        andres: [...sett].some(v => Object.entries(OSTEVITSER.barn).some(([n, j]) => n !== navn && v === j)),
+        andres: [...sett].some(v => Object.entries(OSTEVITSER.barn).some(([n, js]) => n !== navn && js.includes(v))),
       };
     }
     return res;
   });
-  for (const navn of ['Aslak', 'Eira', 'Ellinor', 'Aurora', 'Asta', 'Alfred']) {
+  for (const navn of ['Aslak', 'Eira', 'Ellinor', 'Aurora', 'Asta', 'Alfred', 'Eivind', 'Ida', 'Fredrik', 'Bjørg']) {
     check(`${navn} får sin egen vits (og fellesvitser)`, barn[navn].egen && barn[navn].felles && !barn[navn].andres, JSON.stringify(barn[navn]));
+    check(`${navn} sine vitser roterer (flere enn én dukker opp)`, barn[navn].alleUlike, JSON.stringify(barn[navn]));
   }
-  check('voksne får aldri barnevitser', !barn['Eivind'].egen && !barn['Eivind'].andres && barn['Eivind'].felles);
+  check('ukjente navn får kun fellesvitser', !barn['Nykommer'].egen && !barn['Nykommer'].andres && barn['Nykommer'].felles);
 
   await browser.close();
   console.log(`\n${pass} ok, ${fail} feil`);

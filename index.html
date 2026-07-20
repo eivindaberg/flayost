@@ -484,15 +484,60 @@ const OSTEVITSER = {
     'Hemmelig melk? Da må det være en inkognit-OST!',
     'Kanskje melka er fra en enhjørning? 🦄',
   ],
-  // personlige vitser til barna — vises på tavla (ca. annenhver gang) når
-  // akkurat det barnet er logget inn. Alltid positive!
+  // personlige vitser — vises på tavla (ca. annenhver gang) når akkurat den
+  // personen er logget inn. Flere per person, én tilfeldig hver gang.
+  // Alltid positive!
   barn: {
-    'Aslak':   'Hvorfor slapper ostene helt av når Aslak smaker? – Han tar alt helt a-SLAK-ka rolig – verdens kuleste smaker! 😎',
-    'Eira':    'Hvorfor jubler ostene for Eira? – Å bli smakt av henne er den største ÆRA-en en ost kan få! 👑',
-    'Ellinor': 'Hva drømmer enhver ost om? – Å bli smakt av Ellinor… ELLER NOe enda bedre? Finnes ikke! 💛',
-    'Aurora':  'Hvilken smaker lyser opp hele ostebordet som nordlyset? – AURORA, selvfølgelig! 🌌',
-    'Asta':    'Hvordan beskriver ostene en smaking med Asta? – Helt fant-ASTA-stisk! ⭐',
-    'Alfred':  'Hvorfor er ostebordet så fredelig når Alfred er der? – Med ALFRED blir det ALL FRED – og masse god ost! 🕊️',
+    'Aslak': [
+      'Hvorfor slapper ostene helt av når Aslak smaker? – Han tar alt helt a-SLAK-ka rolig – verdens kuleste smaker! 😎',
+      'Hva sier ostene når Aslak kommer? – Nå blir det SLAKk i alle skuldre – for han er kul som is! 🧊',
+      'Hvorfor er Aslak best på Stinkometeret? – Han lar aldri noe SLÅ ham ut av kurs! 👃',
+    ],
+    'Eira': [
+      'Hvorfor jubler ostene for Eira? – Å bli smakt av henne er den største ÆRA-en en ost kan få! 👑',
+      'Hva heter tidsalderen der alle oster smiler? – EIRA-en da Eira smakte dem! ✨',
+      'Hvorfor er Eira best til å finne den perfekte osten? – Hun har et skarpt ØYE og et enda skarpere smaksinn! 👀',
+    ],
+    'Ellinor': [
+      'Hva drømmer enhver ost om? – Å bli smakt av Ellinor… ELLER NOe enda bedre? Finnes ikke! 💛',
+      'Hvorfor er Ellinor ostenes favoritt? – Det finnes ELLER NOen bedre smaker, men de har ikke funnet dem ennå! 😄',
+      'Hva sier osten når Ellinor smiler? – Endelig, ELLER NOe å glede seg til hele dagen! 🌟',
+    ],
+    'Aurora': [
+      'Hvilken smaker lyser opp hele ostebordet som nordlyset? – AURORA, selvfølgelig! 🌌',
+      'Hvorfor er Auroras favorittost alltid best? – Hun gir den samme magien som et nordlys på himmelen! 💚',
+      'Hva kaller ostene Auroras smilefjes? – Den vakreste lysshowet i hele kjøleskapet! ✨',
+    ],
+    'Asta': [
+      'Hvordan beskriver ostene en smaking med Asta? – Helt fant-ASTA-stisk! ⭐',
+      'Hva sier osten når Asta smaker den? – Dette blir en fant-ASTA-tisk dag! 🌟',
+      'Hvorfor er Asta så flink til å dømme oster? – Hun har rett og slett fant-ASTA-tisk smakssans! 🏆',
+    ],
+    'Alfred': [
+      'Hvorfor er ostebordet så fredelig når Alfred er der? – Med ALFRED blir det ALL FRED – og masse god ost! 🕊️',
+      'Hva bringer Alfred til enhver smaking? – ALL FRED og god stemning, pluss et skarpt smaksinn! 🌿',
+      'Hvorfor liker alle ostene Alfred? – Han gir dem ALL FRED de fortjener! 🍃',
+    ],
+    'Eivind': [
+      'Hvem blåser frisk bris inn i hver ostesmaking? – EI VIND… nei, EIVIND! 🌬️',
+      'Hvorfor er Eivinds osteanmeldelser så friske? – Han har alltid en EI VIND av nye ideer! 🍃',
+      'Hva sier osten når Eivind kommer? – Endelig litt frisk EI VIND i smakingen! 💨',
+    ],
+    'Ida': [
+      'Når er ostenes favorittdag? – I DAg – alltid når Ida smaker! ☀️',
+      'Hvorfor gleder ostene seg alltid? – Fordi det er I DAg Ida kommer på besøk! 🌞',
+      'Hva sier osten om Idas dommer? – De er alltid rett I DAg, blinken! 🎯',
+    ],
+    'Fredrik': [
+      'Hvilken smaker er både FRED-elig og RIK på god smak? – FREDRIK, så klart! 🕊️',
+      'Hvorfor er det alltid god stemning når Fredrik dømmer? – Han bringer FRED, og han er RIK på gode ord! 💬',
+      'Hva sier ostene om Fredriks smaksnotater? – FRED-elig gode og RIK-tig morsomme! 📝',
+    ],
+    'Bjørg': [
+      'Hvem BERGer enhver ostekveld? – BJØRG, selvfølgelig! 🦸',
+      'Hvorfor er Bjørg så trygg å stole på? – Hun BERGer familiens ostekvelder hver gang! 🏔️',
+      'Hva sier ostene når Bjørg kommer? – Nå BERGer vi denne smakingen sammen! 🎉',
+    ],
   },
   // treffer på ostenavnet i «Ny ost» (foldet, så «Brie de Meaux» matcher «brie»
   // og «Comté» matcher «comte»)
@@ -547,10 +592,10 @@ const CHEESES_FR = [
   {name:'Brie de Melun', milk:'Ku', origin:'Melun', lat:48.5406, lng:2.6531, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Wikicheese_-_Brie_de_Melun_-_20150515_-_015.jpg/500px-Wikicheese_-_Brie_de_Melun_-_20150515_-_015.jpg'},
   {name:'Coulommiers', milk:'Ku', origin:'Coulommiers', lat:48.8156, lng:3.0847, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Coulommiers_lait_cru.jpg/500px-Coulommiers_lait_cru.jpg'},
   {name:'Époisses', milk:'Ku', origin:'Époisses (Bourgogne)', lat:47.5069, lng:4.1733, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/%C3%89poisses_Gaugry_03.jpg/500px-%C3%89poisses_Gaugry_03.jpg'},
-  {name:'Langres', milk:'Ku', origin:'Langres', lat:47.8625, lng:5.3331, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Langres_%28_52_%29_vue_g%C3%A9n%C3%A9rale.jpg/500px-Langres_%28_52_%29_vue_g%C3%A9n%C3%A9rale.jpg'},
+  {name:'Langres', milk:'Ku', origin:'Langres', lat:47.8625, lng:5.3331, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Langres_fromage_AOP_coupe.jpg/500px-Langres_fromage_AOP_coupe.jpg'},
   {name:'Chaource', milk:'Ku', origin:'Chaource', lat:48.0586, lng:4.1383, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Chaource_%28fromage%29_01.jpg/500px-Chaource_%28fromage%29_01.jpg'},
   {name:'Munster', milk:'Ku', origin:'Munster (Alsace)', lat:48.0414, lng:7.1342, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Munster_01.jpg/500px-Munster_01.jpg'},
-  {name:'Livarot', milk:'Ku', origin:'Livarot (Normandie)', lat:49.0064, lng:0.1519, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/%C3%89glise_de_Livarot.jpg/500px-%C3%89glise_de_Livarot.jpg'},
+  {name:'Livarot', milk:'Ku', origin:'Livarot (Normandie)', lat:49.0064, lng:0.1519, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Livarot_%28fromage%29_02.jpg/500px-Livarot_%28fromage%29_02.jpg'},
   {name:"Pont-l'Évêque", milk:'Ku', origin:"Pont-l'Évêque (Normandie)", lat:49.2864, lng:0.1897, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Pont-l%27%C3%89v%C3%AAque_03.jpg/500px-Pont-l%27%C3%89v%C3%AAque_03.jpg'},
   {name:'Neufchâtel', milk:'Ku', origin:'Neufchâtel-en-Bray', lat:49.7328, lng:1.4394, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/C%C5%93urs_de_Neufch%C3%A2tel_01.jpg/500px-C%C5%93urs_de_Neufch%C3%A2tel_01.jpg'},
   {name:'Maroilles', milk:'Ku', origin:'Maroilles (Nord)', lat:50.1350, lng:3.7608, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Maroilles_%28cheese%29.jpg/500px-Maroilles_%28cheese%29.jpg'},
@@ -585,7 +630,7 @@ const CHEESES_FR = [
   {name:'Laguiole', milk:'Ku', origin:'Laguiole (Aubrac)', lat:44.6842, lng:2.8472, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Laguiole_%28fromage%29_01.jpg/500px-Laguiole_%28fromage%29_01.jpg'},
   {name:'Morbier', milk:'Ku', origin:'Morbier (Jura)', lat:46.5369, lng:6.0167, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Morbier_%28fromage%29_01.jpg/500px-Morbier_%28fromage%29_01.jpg'},
   {name:'Mimolette', milk:'Ku', origin:'Lille', lat:50.6292, lng:3.0573, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/A_Mimolette_cheese_at_The_Verandah.jpg/500px-A_Mimolette_cheese_at_The_Verandah.jpg'},
-  {name:'Saint-Nectaire', milk:'Ku', origin:'Saint-Nectaire (Auvergne)', lat:45.5881, lng:2.9928, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Saint-Nectaire_Vue_g%C3%A9n%C3%A9rale10.JPG/500px-Saint-Nectaire_Vue_g%C3%A9n%C3%A9rale10.JPG'},
+  {name:'Saint-Nectaire', milk:'Ku', origin:'Saint-Nectaire (Auvergne)', lat:45.5881, lng:2.9928, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Saint-Nectaire.jpg/500px-Saint-Nectaire.jpg'},
   {name:'Ossau-Iraty', milk:'Sau', origin:'Pays basque / Béarn', lat:43.0000, lng:-1.0000, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Fromages_Ossau-Iraty_003.jpg/500px-Fromages_Ossau-Iraty_003.jpg'},
   {name:'Tomme des Pyrénées', milk:'Ku', origin:'Pyrénées', lat:42.9300, lng:0.6500, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Tommes_des_Pyr%C3%A9n%C3%A9es.jpg/500px-Tommes_des_Pyr%C3%A9n%C3%A9es.jpg'},
   {name:'Bethmale', milk:'Ku', origin:'Bethmale (Ariège)', lat:42.9333, lng:1.0833, tex:'Fast', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Wikicheese_-_Bethmale_-_20150417_-_001.jpg/500px-Wikicheese_-_Bethmale_-_20150417_-_001.jpg'},
@@ -613,7 +658,7 @@ const CHEESES_FR = [
   {name:'Selles-sur-Cher', milk:'Geit', origin:'Selles-sur-Cher', lat:47.2756, lng:1.5547, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Selles04.jpg/500px-Selles04.jpg'},
   {name:'Pouligny-Saint-Pierre', milk:'Geit', origin:'Pouligny-Saint-Pierre', lat:46.6808, lng:1.0392, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Pouligny-saint-pierre_%28fromage%29_03.jpg/500px-Pouligny-saint-pierre_%28fromage%29_03.jpg'},
   {name:'Chabichou du Poitou', milk:'Geit', origin:'Poitou', lat:46.6486, lng:-0.2478, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Chabichou_du_Poitou_04.jpg/500px-Chabichou_du_Poitou_04.jpg'},
-  {name:'Rocamadour', milk:'Geit', origin:'Rocamadour', lat:44.7994, lng:1.6178, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Rocamadour_vue_cote.JPG/500px-Rocamadour_vue_cote.JPG'},
+  {name:'Rocamadour', milk:'Geit', origin:'Rocamadour', lat:44.7994, lng:1.6178, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/9/90/Rocamadour_AOP.jpg'},
   {name:'Cabécou', milk:'Geit', origin:'Quercy', lat:44.2667, lng:1.6333, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Cab%C3%A9cou_de_l%27Aveyron.JPG/500px-Cab%C3%A9cou_de_l%27Aveyron.JPG'},
   {name:'Picodon', milk:'Geit', origin:'Drôme / Ardèche', lat:44.7500, lng:4.8000, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Wikicheese_-_Picodon_-_20150417_-_003.jpg/500px-Wikicheese_-_Picodon_-_20150417_-_003.jpg'},
   {name:'Pélardon', milk:'Geit', origin:'Cévennes', lat:44.1200, lng:3.9000, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/P%C3%A9lardon_02.jpg/500px-P%C3%A9lardon_02.jpg'},
@@ -632,7 +677,7 @@ const CHEESES_FR = [
   {name:"Brin d'Amour", milk:'Sau', origin:'Korsika', lat:42.3000, lng:9.1500, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Wikicheese_-_Fleur_du_Maquis_-_20150417_-_005.jpg/500px-Wikicheese_-_Fleur_du_Maquis_-_20150417_-_005.jpg'},
   {name:'Pérail', milk:'Sau', origin:'Larzac', lat:43.9800, lng:3.2000, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Cheese_P%C3%A9rail.jpg/500px-Cheese_P%C3%A9rail.jpg'},
   // ferske og barnas favoritter
-  {name:'Fontainebleau', milk:'Ku', origin:'Fontainebleau', lat:48.4047, lng:2.7016, tex:'Fersk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/L%27%C3%A9tang_aux_carpes_vue_du_ciel.jpg/500px-L%27%C3%A9tang_aux_carpes_vue_du_ciel.jpg'},
+  {name:'Fontainebleau', milk:'Ku', origin:'Fontainebleau', lat:48.4047, lng:2.7016, tex:'Fersk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Fontainebleau_avec_du_brownie.jpg/500px-Fontainebleau_avec_du_brownie.jpg'},
   {name:'Petit-Suisse', milk:'Ku', origin:'Gournay-en-Bray (Normandie)', lat:49.4822, lng:1.7253, tex:'Fersk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Petit-suisse_assiette.jpg/500px-Petit-suisse_assiette.jpg'},
   {name:'Boursin', milk:'Ku', origin:'Croisy-sur-Eure (Normandie)', lat:49.0167, lng:1.3833, tex:'Fersk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Boursin-cheese-3494_1280.jpg/500px-Boursin-cheese-3494_1280.jpg'},
   {name:'La vache qui rit', milk:'Ku', origin:'Lons-le-Saunier (Jura)', lat:46.6744, lng:5.5539},
@@ -974,10 +1019,10 @@ function logout(){
 function enterWall(){
   $('screen-login').classList.add('hidden');
   $('screen-wall').classList.remove('hidden');
-  // fersk vits på tavla ved hver innlogging; barna får sin egen personlige
-  // vits omtrent annenhver gang
+  // fersk vits på tavla ved hver innlogging; alle med en navnevits-liste får
+  // sin egen personlige (tilfeldig blant flere) omtrent annenhver gang
   const pers = SESS && OSTEVITSER.barn[SESS.name];
-  $('vits-wall').textContent = (pers && Math.random() < 0.5) ? pers : vitsPick(OSTEVITSER.felles);
+  $('vits-wall').textContent = (pers && Math.random() < 0.5) ? vitsPick(pers) : vitsPick(OSTEVITSER.felles);
   renderAll();
 }
 /* ---------- min side: bytt figur (gjenbruker flayost_login sin

@@ -30,6 +30,16 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log(ok ? '  ✅' : '
   check('detaljark viser nettbilde + 📷 Wikimedia', dhtml.includes('upload.wikimedia.org') && dhtml.includes('Wikimedia'));
   const loaded = await p.$eval('#dPhotoWrap img', async img => { await new Promise(r => { if (img.complete) r(); img.onload = r; img.onerror = r; setTimeout(r, 8000); }); return img.naturalWidth; });
   check('bildet laster faktisk fra Wikimedia (naturalWidth > 0)', loaded > 0, 'naturalWidth=' + loaded);
+
+  // regresjonsvakt: fang filnavn som lukter by/landemerke i stedet for ost
+  // (fant Saint-Nectaire = bybilde, Langres/Livarot/Rocamadour samme feil 2026-07-20)
+  const bad = await p.evaluate(() => {
+    const susp = /vue|panorama|paysage|village|mairie|eglise|église|château|chateau|carte|map|blason|drapeau|flag|logo|monument|place_|street|rue_|gare_/i;
+    return CHEESES_FR.filter(c => c.img && susp.test(decodeURIComponent(c.img.split('/').pop())))
+      .map(c => c.name + ' → ' + decodeURIComponent(c.img.split('/').pop()));
+  });
+  check('ingen ostebilder ser ut som by-/landemerkebilder', bad.length === 0, JSON.stringify(bad));
+
   await b.close();
   console.log(`\n${pass} ok, ${fail} feil`); process.exit(fail ? 1 : 0);
 })().catch(e => { console.error('❌', e.message); process.exit(1); });
