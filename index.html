@@ -80,6 +80,9 @@
   .me{margin-left:auto; display:flex; align-items:center; gap:8px; background:var(--card); border-radius:999px; padding:6px 14px 6px 8px; box-shadow:0 4px 14px rgba(80,50,10,.12); font-weight:800;}
   .me .ava{font-size:26px;}
   .tabs{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;}
+  .round-banner{display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--ochre-soft); border:2px solid var(--ochre); border-radius:14px; padding:10px 14px; margin-bottom:14px; font-weight:800;}
+  .round-head{text-align:center; margin:6px 0 16px;}
+  .round-title{font-size:26px; font-weight:900;}
   .tab{border-radius:999px; padding:11px 20px; font-weight:800; background:rgba(255,253,247,.7); border:2px solid transparent;}
   .tab.on{background:var(--ink); color:#fff;}
   .wall{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px;}
@@ -283,7 +286,11 @@
         <span class="mini">meg</span>
       </button>
     </div>
-    <div class="tabs">
+    <div class="round-banner hidden" id="round-banner">
+      <span>🥣 Smakerunde pågår <span class="mini" id="round-info"></span></span>
+      <button class="ghost small" onclick="endRound()">Avslutt runde</button>
+    </div>
+    <div class="tabs" id="tabs-normal">
       <button class="tab on" id="tab-beste" onclick="setTab('beste')">🏆 Beste</button>
       <button class="tab" id="tab-nyeste" onclick="setTab('nyeste')">🆕 Nyeste</button>
       <button class="tab" id="tab-usmakt" onclick="setTab('usmakt')">👅 Ikke smakt</button>
@@ -292,6 +299,13 @@
       <button class="tab" id="tab-pass" onclick="setTab('pass')">🛂 Pass</button>
     </div>
     <div class="wall" id="wall"></div>
+    <div id="round-wrap" class="hidden">
+      <div class="round-head">
+        <div class="round-title">🥣 Smakerunde</div>
+        <p class="mini center" id="round-sub">Dette er ostene på bordet akkurat nå. Smak, dømm — og legg gjerne til flere!</p>
+      </div>
+      <div class="wall" id="round-list"></div>
+    </div>
     <div id="kart-wrap" class="hidden">
       <div id="kart"></div>
       <div class="kart-legend">
@@ -393,6 +407,10 @@
       <button class="ghost" onclick="saveFamily()">Lagre</button>
     </div>
     <datalist id="familyList"></datalist>
+    <div id="meRoundWrap" class="hidden">
+      <label class="blk">🥣 Smakerunde <span class="mini">(fokuserer ungenes app på kun ostene som er ute nå)</span></label>
+      <button class="ghost" style="width:100%;" id="meRoundBtn" onclick=""></button>
+    </div>
     <button class="ghost" style="width:100%; margin-top:16px;" onclick="closeMe();logout()">🚪 Logg ut <span class="mini">(bytt smaker)</span></button>
   </div>
 </div>
@@ -752,7 +770,7 @@ const REGIONS_FR = [
 ];
 
 let SESS = null;                                   // {name, pin, avatar, is_kid}
-let BOARD = {members:[], cheeses:[], ratings:[], stinks:[]};  // delt tavle (cache i localStorage)
+let BOARD = {members:[], cheeses:[], ratings:[], stinks:[], round:null};  // delt tavle (cache i localStorage)
 let TAB = 'beste';
 let pinBuf = '', pinMode = null, pinTarget = null; // 'login' | 'create'
 let newAva = AVATARS[0], newIsKid = true;
@@ -877,7 +895,7 @@ async function refreshBoard(){
   try{
     const res = await rpc('flayost_get_board', {p_name:SESS.name, p_pin:SESS.pin});
     if(res && res.ok){
-      BOARD = {members:res.members, cheeses:res.cheeses, ratings:res.ratings, stinks:res.stinks||[]};
+      BOARD = {members:res.members, cheeses:res.cheeses, ratings:res.ratings, stinks:res.stinks||[], round:res.round||null};
       // plukk opp endringer i egen rolle/figur gjort på serveren (f.eks.
       // barn → voksen) uten at man må logge ut og inn igjen
       const me = BOARD.members.find(m=>m.name===SESS.name);
@@ -1067,6 +1085,17 @@ function openMe(){
   $('meFamily').value = memberOf(SESS.name)?.family || '';
   $('familyList').innerHTML = [...new Set(BOARD.members.map(m=>m.family).filter(Boolean))]
     .map(f=>`<option value="${esc(f)}">`).join('');
+  $('meRoundWrap').classList.toggle('hidden', !SESS.is_admin);
+  if(SESS.is_admin){
+    const btn = $('meRoundBtn');
+    if(BOARD.round){
+      btn.textContent = '⏹ Avslutt smakerunden';
+      btn.onclick = endRound;
+    }else{
+      btn.textContent = '▶️ Start smakerunde (3 oster på bordet)';
+      btn.onclick = startRound;
+    }
+  }
   const g = $('meAvaGrid'); g.innerHTML='';
   AVATARS.forEach(a=>{
     const b = document.createElement('button');
@@ -1104,16 +1133,70 @@ async function setMyAvatar(a){
     }else toast('Fikk ikke byttet figur – prøv igjen');
   }catch(e){ toast('Sjekk nettet og prøv igjen'); }
 }
+/* Smakerunde 🥣: en admin starter en fokusert runde (typisk 3 oster på
+   bordet). Alt en unge da ser er nettopp de ostene — ikke hele tavla,
+   kartet, passet eller «For deg». Nye oster ungene legger til tagges
+   automatisk med runden på serveren, så de kan «registrere sine egne»
+   uten å få se resten av historikken. Admin er alltid unntatt. */
+function renderRoundList(){
+  const wrap = $('round-list'); wrap.innerHTML='';
+  const round = BOARD.round;
+  const list = BOARD.cheeses.filter(c=>c.round_id===round.id);
+  if(!list.length){
+    const d = document.createElement('div');
+    d.className='empty';
+    d.innerHTML = 'Ingen oster i denne runden ennå!<br><span class="mini">Trykk «➕ Ny ost» for å legge til den første 🥖</span>';
+    wrap.appendChild(d);
+    return;
+  }
+  list.forEach(c=>wrap.appendChild(cheeseCard(c)));
+}
 function renderAll(){
   if(!SESS) return;
   $('meAva').textContent = SESS.avatar;
   $('meName').textContent = SESS.name;
-  if(TAB==='kart') renderKart();
+  const round = BOARD.round;
+  const restricted = !!(round && !SESS.is_admin);
+  $('round-banner').classList.toggle('hidden', !(round && SESS.is_admin));
+  if(round && SESS.is_admin){
+    const st = new Date(round.started_at);
+    $('round-info').textContent = `– startet av ${esc(round.started_by)} kl. ${String(st.getHours()).padStart(2,'0')}:${String(st.getMinutes()).padStart(2,'0')}`;
+  }
+  $('round-wrap').classList.toggle('hidden', !restricted);
+  $('tabs-normal').classList.toggle('hidden', restricted);
+  if(restricted){
+    $('wall').classList.add('hidden');
+    $('kart-wrap').classList.add('hidden');
+    $('fordeg-wrap').classList.add('hidden');
+    $('pass-wrap').classList.add('hidden');
+    renderRoundList();
+  }else if(TAB==='kart') renderKart();
   else if(TAB==='fordeg') renderForDeg();
   else if(TAB==='pass') renderPass();
   else renderWall();
   if(detailId) renderDetail();
   syncBadgeBaseline();
+}
+async function startRound(){
+  try{
+    const res = await rpc('flayost_round_start', {p_name:SESS.name, p_pin:SESS.pin, p_cheese_ids:[]});
+    if(res && res.ok){ toast('🥣 Smakerunde startet!'); closeMe(); await refreshBoard(); }
+    else toast('Fikk ikke startet runden – prøv igjen');
+  }catch(e){ toast('Sjekk nettet og prøv igjen'); }
+}
+async function endRound(){
+  try{
+    const res = await rpc('flayost_round_end', {p_name:SESS.name, p_pin:SESS.pin});
+    if(res && res.ok){ toast('Smakerunden er avsluttet'); closeMe(); await refreshBoard(); }
+    else toast('Fikk ikke avsluttet runden – prøv igjen');
+  }catch(e){ toast('Sjekk nettet og prøv igjen'); }
+}
+async function addToRound(cheeseId){
+  try{
+    const res = await rpc('flayost_round_add_existing', {p_name:SESS.name, p_pin:SESS.pin, p_cheese_id:cheeseId});
+    if(res && res.ok){ toast('🥣 Lagt til i smakerunden'); await refreshBoard(); }
+    else toast(res && res.error==='no_active_round' ? 'Ingen aktiv runde' : 'Fikk ikke lagt til – prøv igjen');
+  }catch(e){ toast('Sjekk nettet og prøv igjen'); }
 }
 function setTab(t){
   TAB = t;
@@ -1143,6 +1226,43 @@ function sortedCheeses(){
   }
   return list;
 }
+/* Bygger ett ostekort — delt mellom vanlig vegg og den fokuserte
+   smakerunde-visningen, så de alltid ser og oppfører seg likt. */
+function cheeseCard(c){
+  const mine = myRating(c.id);
+  const avg = avgOf(c.id);
+  const n = ratingsFor(c.id).length;
+  const card = document.createElement('div');
+  card.className='cheese';
+  const src = c.photo || webImgFor(c.name);
+  const photo = src
+    ? `<div class="photo" style="background-image:url('${src}')" onclick="openDetail('${c.id}')"></div>`
+    : `<div class="photo" onclick="openDetail('${c.id}')">${esc((c.type||'🧀').split(' ')[0]||'🧀')}</div>`;
+  const emos = [1,2,3,4,5].map(s=>
+    `<button class="${mine && mine.score===s ? 'on':''}" onclick="rate('${c.id}',${s},event)">${EMO[s]}</button>`
+  ).join('');
+  const ms = myStink(c.id), as = avgStink(c.id);
+  const stinks = [1,2,3,4,5].map(s=>
+    `<button class="${ms && ms.stink===s ? 'on':''}" onclick="rateStink('${c.id}',${s},event)">${STINK[s]}</button>`
+  ).join('');
+  card.innerHTML = `
+    ${photo}
+    <div class="body">
+      <div class="name-row" onclick="openDetail('${c.id}')">
+        <div class="name">${(nv=>esc(nv.base)+(nv.vari?`<span class="vari">${esc(nv.vari)}</span>`:''))(splitVariant(c.name))}</div>
+        <div class="avg">${avg!==null ? EMO[Math.round(avg)]+' '+avg.toFixed(1) : '–'} <small>(${n})</small></div>
+      </div>
+      <div class="meta">
+        ${c.type ? `<span class="typechip">${esc(c.type)}</span>`:''}
+        ${c.origin ? `<span class="typechip ochip" title="${esc(c.origin)}">📍 ${esc(c.origin)}</span>`:''}
+        ${as!==null ? `<span class="typechip">💨 ${as.toFixed(1)}</span>`:''}
+        ${!mine ? '<span class="badge-new">ikke smakt!</span>':''}
+      </div>
+      <div class="emorow" title="Din dom — hvor god smaker den?"><span class="slab">👅</span>${emos}</div>
+      <div class="stinkrow" title="Stinkometeret — hvor mye lukter den?"><span class="slab">💨</span>${stinks}</div>
+    </div>`;
+  return card;
+}
 function renderWall(){
   const wall = $('wall'); wall.innerHTML='';
   const list = sortedCheeses();
@@ -1155,41 +1275,7 @@ function renderWall(){
     wall.appendChild(d);
     return;
   }
-  list.forEach(c=>{
-    const mine = myRating(c.id);
-    const avg = avgOf(c.id);
-    const n = ratingsFor(c.id).length;
-    const card = document.createElement('div');
-    card.className='cheese';
-    const src = c.photo || webImgFor(c.name);
-    const photo = src
-      ? `<div class="photo" style="background-image:url('${src}')" onclick="openDetail('${c.id}')"></div>`
-      : `<div class="photo" onclick="openDetail('${c.id}')">${esc((c.type||'🧀').split(' ')[0]||'🧀')}</div>`;
-    const emos = [1,2,3,4,5].map(s=>
-      `<button class="${mine && mine.score===s ? 'on':''}" onclick="rate('${c.id}',${s},event)">${EMO[s]}</button>`
-    ).join('');
-    const ms = myStink(c.id), as = avgStink(c.id);
-    const stinks = [1,2,3,4,5].map(s=>
-      `<button class="${ms && ms.stink===s ? 'on':''}" onclick="rateStink('${c.id}',${s},event)">${STINK[s]}</button>`
-    ).join('');
-    card.innerHTML = `
-      ${photo}
-      <div class="body">
-        <div class="name-row" onclick="openDetail('${c.id}')">
-          <div class="name">${(nv=>esc(nv.base)+(nv.vari?`<span class="vari">${esc(nv.vari)}</span>`:''))(splitVariant(c.name))}</div>
-          <div class="avg">${avg!==null ? EMO[Math.round(avg)]+' '+avg.toFixed(1) : '–'} <small>(${n})</small></div>
-        </div>
-        <div class="meta">
-          ${c.type ? `<span class="typechip">${esc(c.type)}</span>`:''}
-          ${c.origin ? `<span class="typechip ochip" title="${esc(c.origin)}">📍 ${esc(c.origin)}</span>`:''}
-          ${as!==null ? `<span class="typechip">💨 ${as.toFixed(1)}</span>`:''}
-          ${!mine ? '<span class="badge-new">ikke smakt!</span>':''}
-        </div>
-        <div class="emorow" title="Din dom — hvor god smaker den?"><span class="slab">👅</span>${emos}</div>
-        <div class="stinkrow" title="Stinkometeret — hvor mye lukter den?"><span class="slab">💨</span>${stinks}</div>
-      </div>`;
-    wall.appendChild(card);
-  });
+  list.forEach(c=>wall.appendChild(cheeseCard(c)));
 }
 
 /* =====================================================================
@@ -2056,7 +2142,10 @@ function renderDetail(){
   $('dName').innerHTML = esc(dnv.base) + (dnv.vari ? `<span class="vari">${esc(dnv.vari)}</span>` : '');
   $('dMeta').innerHTML = esc((c.type? c.type+' · ':'') + (c.origin? '📍 '+c.origin+' · ':'') + 'lagt til av ' + c.added_by)
     + ` &nbsp;<button class="ghost small" onclick="editOrigin()">${c.origin ? '✏️ endre sted' : '📍 legg til sted'}</button>`
-    + ` <button class="ghost small" onclick="newVariantFromDetail()" title="Smakt en annen produsent eller lagring av denne? Legg den inn som egen ost.">🧀 annen utgave?</button>`;
+    + ` <button class="ghost small" onclick="newVariantFromDetail()" title="Smakt en annen produsent eller lagring av denne? Legg den inn som egen ost.">🧀 annen utgave?</button>`
+    + (SESS.is_admin && BOARD.round && c.round_id!==BOARD.round.id
+        ? ` <button class="ghost small" onclick="addToRound('${c.id}')" title="Ta med denne osten i den pågående smakerunden">🥣 legg til i runden</button>`
+        : '');
   const wimg = c.photo ? null : webImgFor(c.name);
   $('dPhotoWrap').innerHTML = c.photo
     ? `<img class="dphoto" src="${c.photo}" alt="">`
