@@ -85,7 +85,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log(ok ? '  ✅' : '
       wallHidden: document.getElementById('wall').classList.contains('hidden'),
       cardCount: document.querySelectorAll('#round-list .cheese').length,
       bannerHidden: document.getElementById('round-banner').classList.contains('hidden'),
-      fabVisible: !!document.querySelector('.fab'),
+      fabHidden: document.getElementById('fab-add').classList.contains('hidden'),
     };
 
     // admin: full tilgang + banner
@@ -96,18 +96,32 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log(ok ? '  ✅' : '
       roundWrapHidden: document.getElementById('round-wrap').classList.contains('hidden'),
       bannerVisible: !document.getElementById('round-banner').classList.contains('hidden'),
       bannerText: document.getElementById('round-banner').textContent,
+      fabHidden: document.getElementById('fab-add').classList.contains('hidden'),
     };
-    return { kidView, adminView };
+
+    // admin: «legg til oster»-skjermen
+    openRoundAdmin();
+    const adminScreen1 = {
+      open: !document.getElementById('overlay-round').classList.contains('hidden'),
+      listText: document.getElementById('roundAdminList').textContent,
+    };
+    document.getElementById('roundExistingSearch').value = 'Gammel';
+    renderRoundExistingSugs();
+    const sugTexts = [...document.querySelectorAll('#roundExistingSugs .sugitem')].map(e => e.textContent);
+    return { kidView, adminView, adminScreen1, sugTexts };
   });
   check('barn: tabs skjult', ui.kidView.tabsHidden);
   check('barn: rundevisning synlig', ui.kidView.roundVisible);
   check('barn: normal vegg skjult', ui.kidView.wallHidden);
   check('barn: ser KUN de 2 ostene i runden (ikke den gamle)', ui.kidView.cardCount === 2, 'count=' + ui.kidView.cardCount);
   check('barn: ser ikke rundebanneret (det er admin-only)', ui.kidView.bannerHidden);
-  check('barn: kan fortsatt legge til ny ost («registrere sine egne»)', ui.kidView.fabVisible);
+  check('barn: ser IKKE «➕ Ny ost» under runden — kun ostene', ui.kidView.fabHidden);
   check('admin: tabs IKKE skjult (full tilgang under runde)', !ui.adminView.tabsHidden);
   check('admin: rundevisning skjult (bruker vanlig vegg)', ui.adminView.roundWrapHidden);
   check('admin: ser rundebanneret med avslutt-knapp', ui.adminView.bannerVisible && ui.adminView.bannerText.includes('Avslutt runde'));
+  check('admin: beholder «➕ Ny ost»-fab (uavhengig av runde)', !ui.adminView.fabHidden);
+  check('admin: «legg til oster»-skjermen åpner med rundens 2 oster listet', ui.adminScreen1.open && ui.adminScreen1.listText.includes('I runden 1') && ui.adminScreen1.listText.includes('I runden 2'));
+  check('admin: søk finner eksisterende ost UTENFOR runden', ui.sugTexts.some(t => t.includes('Gammel ost')), JSON.stringify(ui.sugTexts));
 
   /* ---- 3. ingen runde aktiv → alt som normalt ---- */
   const normal = await p.evaluate(() => {

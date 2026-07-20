@@ -302,7 +302,7 @@
     <div id="round-wrap" class="hidden">
       <div class="round-head">
         <div class="round-title">🥣 Smakerunde</div>
-        <p class="mini center" id="round-sub">Dette er ostene på bordet akkurat nå. Smak, dømm — og legg gjerne til flere!</p>
+        <p class="mini center" id="round-sub">Dette er ostene på bordet akkurat nå. Smak og døm!</p>
       </div>
       <div class="wall" id="round-list"></div>
     </div>
@@ -322,7 +322,7 @@
     <div id="fordeg-wrap" class="hidden"><div id="fordeg"></div></div>
     <div id="pass-wrap" class="hidden"><div id="pass"></div></div>
     <p class="ostevits" id="vits-wall"></p>
-    <button class="fab" onclick="openAdd()">➕ Ny ost</button>
+    <button class="fab" id="fab-add" onclick="openAdd()">➕ Ny ost</button>
   </div>
 </div>
 
@@ -353,6 +353,26 @@
 </div>
 
 <!-- ================= NY OST ================= -->
+<!-- ================= SMAKERUNDE (ADMIN) ================= -->
+<div class="overlay hidden" id="overlay-round" onclick="if(event.target===this)closeRoundAdmin()">
+  <div class="sheet">
+    <div class="sheet-top">
+      <h2>🥣 Smakerunde</h2>
+      <button class="closex" onclick="closeRoundAdmin()">✕</button>
+    </div>
+    <p class="mini">Legg til ostene som står ute nå — ungene ser kun disse mens runden pågår.</p>
+    <div class="rlist" id="roundAdminList"></div>
+    <button class="primary" style="width:100%; margin:10px 0;" onclick="openAdd()">➕ Legg til ny ost</button>
+    <label class="blk">Eller ta med en allerede registrert ost <span class="mini">(f.eks. rester fra sist)</span></label>
+    <div class="sugwrap">
+      <input type="text" id="roundExistingSearch" placeholder="Søk blant ostene på tavla…" autocomplete="off"
+             oninput="renderRoundExistingSugs()" onfocus="renderRoundExistingSugs()" onblur="setTimeout(hideRoundExistingSugs,200)">
+      <div class="suglist hidden" id="roundExistingSugs"></div>
+    </div>
+    <button class="ghost" style="width:100%; margin-top:16px;" onclick="closeRoundAdmin()">Ferdig</button>
+  </div>
+</div>
+
 <div class="overlay hidden" id="overlay-add" onclick="if(event.target===this)closeAdd()">
   <div class="sheet">
     <div class="sheet-top">
@@ -410,6 +430,7 @@
     <div id="meRoundWrap" class="hidden">
       <label class="blk">🥣 Smakerunde <span class="mini">(fokuserer ungenes app på kun ostene som er ute nå)</span></label>
       <button class="ghost" style="width:100%;" id="meRoundBtn" onclick=""></button>
+      <button class="ghost hidden" style="width:100%; margin-top:8px;" id="meRoundEndBtn" onclick="endRound()">⏹ Avslutt smakerunden</button>
     </div>
     <button class="ghost" style="width:100%; margin-top:16px;" onclick="closeMe();logout()">🚪 Logg ut <span class="mini">(bytt smaker)</span></button>
   </div>
@@ -1103,13 +1124,15 @@ function openMe(){
     .map(f=>`<option value="${esc(f)}">`).join('');
   $('meRoundWrap').classList.toggle('hidden', !SESS.is_admin);
   if(SESS.is_admin){
-    const btn = $('meRoundBtn');
+    const btn = $('meRoundBtn'), endBtn = $('meRoundEndBtn');
     if(BOARD.round){
-      btn.textContent = '⏹ Avslutt smakerunden';
-      btn.onclick = endRound;
+      btn.textContent = '🧀 Administrer oster i runden';
+      btn.onclick = ()=>{ closeMe(); openRoundAdmin(); };
+      endBtn.classList.remove('hidden');
     }else{
       btn.textContent = '▶️ Start smakerunde (3 oster på bordet)';
       btn.onclick = startRound;
+      endBtn.classList.add('hidden');
     }
   }
   const g = $('meAvaGrid'); g.innerHTML='';
@@ -1161,7 +1184,7 @@ function renderRoundList(){
   if(!list.length){
     const d = document.createElement('div');
     d.className='empty';
-    d.innerHTML = 'Ingen oster i denne runden ennå!<br><span class="mini">Trykk «➕ Ny ost» for å legge til den første 🥖</span>';
+    d.innerHTML = `Venter på ostene… 🧀<br><span class="mini">${esc(round.started_by)} legger dem snart ut!</span>`;
     wrap.appendChild(d);
     return;
   }
@@ -1190,20 +1213,25 @@ function renderAll(){
   else if(TAB==='fordeg') renderForDeg();
   else if(TAB==='pass') renderPass();
   else renderWall();
+  $('fab-add').classList.toggle('hidden', restricted);
   if(detailId) renderDetail();
+  if(!$('overlay-round').classList.contains('hidden')) renderRoundAdminList();
   syncBadgeBaseline();
 }
+/* Starter runden og tar admin RETT INN i «legg til oster»-skjermen — det er
+   admin som fyller runden med det som faktisk står på bordet, ikke ungene
+   som møter en tom runde og blir bedt om å fylle den selv. */
 async function startRound(){
   try{
     const res = await rpc('flayost_round_start', {p_name:SESS.name, p_pin:SESS.pin, p_cheese_ids:[]});
-    if(res && res.ok){ toast('🥣 Smakerunde startet!'); closeMe(); await refreshBoard(); }
+    if(res && res.ok){ closeMe(); await refreshBoard(); openRoundAdmin(); }
     else toast('Fikk ikke startet runden – prøv igjen');
   }catch(e){ toast('Sjekk nettet og prøv igjen'); }
 }
 async function endRound(){
   try{
     const res = await rpc('flayost_round_end', {p_name:SESS.name, p_pin:SESS.pin});
-    if(res && res.ok){ toast('Smakerunden er avsluttet'); closeMe(); await refreshBoard(); }
+    if(res && res.ok){ toast('Smakerunden er avsluttet'); closeMe(); closeRoundAdmin(); await refreshBoard(); }
     else toast('Fikk ikke avsluttet runden – prøv igjen');
   }catch(e){ toast('Sjekk nettet og prøv igjen'); }
 }
@@ -1213,6 +1241,53 @@ async function addToRound(cheeseId){
     if(res && res.ok){ toast('🥣 Lagt til i smakerunden'); await refreshBoard(); }
     else toast(res && res.error==='no_active_round' ? 'Ingen aktiv runde' : 'Fikk ikke lagt til – prøv igjen');
   }catch(e){ toast('Sjekk nettet og prøv igjen'); }
+}
+/* ---------- admin: legg til oster i den pågående runden ---------- */
+function openRoundAdmin(){
+  if(!SESS || !SESS.is_admin || !BOARD.round) return;
+  $('roundExistingSearch').value='';
+  hideRoundExistingSugs();
+  renderRoundAdminList();
+  $('overlay-round').classList.remove('hidden');
+}
+function closeRoundAdmin(){ hideRoundExistingSugs(); $('overlay-round').classList.add('hidden'); }
+function renderRoundAdminList(){
+  const wrap = $('roundAdminList');
+  if(!wrap) return;
+  if(!BOARD.round){ closeRoundAdmin(); return; }
+  const list = BOARD.cheeses.filter(c=>c.round_id===BOARD.round.id);
+  wrap.innerHTML = list.length ? list.map(c=>
+    `<div class="rline"><span class="ava">${esc((c.type||'🧀').split(' ')[0]||'🧀')}</span>
+      <span class="who">${esc(splitVariant(c.name).base)}</span></div>`
+  ).join('') : `<p class="mini center">Ingen oster lagt til ennå — trykk «➕ Legg til ny ost» under, eller søk opp en du alt har registrert.</p>`;
+}
+function roundExistingCandidates(q){
+  const f = fold(q);
+  if(!f || !BOARD.round) return [];
+  return BOARD.cheeses
+    .filter(c=>c.round_id!==BOARD.round.id && fold(splitVariant(c.name).base).includes(f))
+    .slice(0,6);
+}
+function renderRoundExistingSugs(){
+  const list = $('roundExistingSugs');
+  const hits = roundExistingCandidates($('roundExistingSearch').value);
+  list.innerHTML='';
+  if(!hits.length){ list.classList.add('hidden'); return; }
+  hits.forEach(c=>{
+    const b = document.createElement('button');
+    b.type='button'; b.className='sugitem';
+    b.innerHTML = `<span class="smilk">${esc((c.type||'🧀').split(' ')[0]||'🧀')}</span><span class="sname">${esc(splitVariant(c.name).base)}</span>`;
+    b.onpointerdown = ev=>{ ev.preventDefault(); pickRoundExisting(c.id); };
+    list.appendChild(b);
+  });
+  list.classList.remove('hidden');
+}
+function hideRoundExistingSugs(){ const l=$('roundExistingSugs'); if(l){ l.classList.add('hidden'); l.innerHTML=''; } }
+async function pickRoundExisting(cheeseId){
+  $('roundExistingSearch').value='';
+  hideRoundExistingSugs();
+  await addToRound(cheeseId);
+  renderRoundAdminList();
 }
 function setTab(t){
   TAB = t;
