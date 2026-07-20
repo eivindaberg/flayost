@@ -8,8 +8,8 @@ const sub = fs.readdirSync(path.join(base, dir)).find(d => d.startsWith('chrome-
   const p = await b.newPage();
   await p.goto('http://localhost:8899/index.html', { waitUntil: 'domcontentloaded' });
   const after = await p.evaluate(async () => {
-    SESS = { name: 'E2E Fake', pin: '0000', avatar: '🦊', is_kid: true };
-    rpc = async () => ({ ok: true, members: [{ name: 'E2E Fake', avatar: '🦊', is_kid: false }], cheeses: [], ratings: [], stinks: [] });
+    SESS = { name: 'Lokal Test', pin: '0000', avatar: '🦊', is_kid: true };
+    rpc = async () => ({ ok: true, members: [{ name: 'Lokal Test', avatar: '🦊', is_kid: false }], cheeses: [], ratings: [], stinks: [] });
     await refreshBoard();
     return SESS.is_kid;
   });

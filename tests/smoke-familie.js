@@ -17,11 +17,13 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log(ok ? '  ✅' : '
     const who = await rpc('flayost_who', {});
     const board = await rpc('flayost_get_board', { p_name: 'E2E Fam', p_pin: '1122' });
     const wrong = await rpc('flayost_set_family', { p_name: 'E2E Fam', p_pin: '9999', p_family: 'Hack' });
-    return { set, whoFam: who.find(m => m.name === 'E2E Fam')?.family, boardFam: board.members.find(m => m.name === 'E2E Fam')?.family, wrong };
+    return { set, whoHasE2E: who.some(m => m.name === 'E2E Fam'), boardFam: board.members.find(m => m.name === 'E2E Fam')?.family, wrong };
   });
   check('set_family lagrer (og trimmer)', srv.set.ok && srv.set.family === 'E2E Hytta', JSON.stringify(srv.set));
-  check('flayost_who bærer family', srv.whoFam === 'E2E Hytta', srv.whoFam);
-  check('get_board bærer family', srv.boardFam === 'E2E Hytta', srv.boardFam);
+  // flayost_who() skjuler ALLTID «E2E …»-navn (ingen innlogget bruker å
+  // skille på — det er den anonyme startskjerm-lista) — bekreft det
+  check('flayost_who skjuler E2E-testmedlemmer (uansett hvem som spør)', srv.whoHasE2E === false);
+  check('get_board bærer family (kalt SOM E2E-medlemmet selv, ser egen data)', srv.boardFam === 'E2E Hytta', srv.boardFam);
   check('feil PIN avvises', srv.wrong && srv.wrong.ok === false, JSON.stringify(srv.wrong));
 
   /* 2. UI: login-gruppering, Min side, Familieligaen */
