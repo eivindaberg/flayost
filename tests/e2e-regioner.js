@@ -44,13 +44,14 @@ function check(name, ok, extra) {
   await page.evaluate(() => loadRegions());
   await page.waitForFunction(() => !!regionsGeo, { timeout: 15000 });
   const geoCheck = await page.evaluate(() => {
-    const admin = regionsGeo.features.map(f => f.properties.nom);
+    const fr = regionsGeo.features.filter(f => f.properties._country === 'Frankrike');
+    const admin = fr.map(f => f.properties._stampName);
     const bad = [];
     for (const r of REGIONS_FR) {
-      const hit = regionsGeo.features.find(f => inRegion(r.lat, r.lng, f));
+      const hit = fr.find(f => inRegion(r.lat, r.lng, f));
       if (!hit) bad.push(r.name + ' → utenfor alle regioner');
-      else if (admin.includes(r.name) && hit.properties.nom !== r.name)
-        bad.push(r.name + ' → havnet i ' + hit.properties.nom);
+      else if (admin.includes(r.name) && hit.properties._stampName !== r.name)
+        bad.push(r.name + ' → havnet i ' + hit.properties._stampName);
     }
     return { n: REGIONS_FR.length, bad };
   });
@@ -60,7 +61,12 @@ function check(name, ok, extra) {
   await page.evaluate(() => { SESS = { name: 'E2E Fake', avatar: '🦊', is_kid: true }; TAB = 'pass'; renderPass(); });
   await page.waitForTimeout(300);
   const svgs = await page.$$eval('#pass .stamp svg.sreg path', els => els.map(e => e.getAttribute('d')));
-  check('13 stempler har SVG-minikart', svgs.length === 13, `fant ${svgs.length}`);
+  // distinkte (land, regionnavn)-par — enklaver/øyer deles ofte i flere features
+  // med samme navn, og passet viser da ett stempelkort per navn, ikke per bit
+  const expectedStamps = await page.evaluate(() =>
+    new Set(regionsGeo.features.map(f => f.properties._country + '|' + f.properties._stampName)).size);
+  check(`${expectedStamps} stempler har SVG-minikart (ett per distinkt region, alle land)`,
+    svgs.length === expectedStamps, `fant ${svgs.length}`);
   check('alle kartene har tegnedata', svgs.every(d => d && d.startsWith('M') && d.length > 50));
   check('ingen ✈️ igjen i passet', !(await page.textContent('#pass')).includes('✈️'));
 

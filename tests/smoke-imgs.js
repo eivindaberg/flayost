@@ -13,13 +13,20 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log(ok ? '  ✅' : '
     SESS = { name: 'E2E Fake', pin: '0000', avatar: '🦊', is_kid: true };
     BOARD = { members: [{ name: 'E2E Fake', avatar: '🦊', is_kid: true }], ratings: [], stinks: [], cheeses: [
       { id: 'a', name: 'Comté', type: '🐄 Ku', added_by: 'E2E Fake', photo: null },
-      { id: 'b', name: 'Roquefort', type: '🐑 Sau', added_by: 'E2E Fake', photo: 'data:image/jpeg;base64,xx' },
+      // ekte (om enn 1×1) PNG-bytes — <img onerror> ville ellers (riktig!)
+      // felle tilbake til emoji på ugyldige testdata slik den nå gjør for ekte ødelagte bilder
+      { id: 'b', name: 'Roquefort', type: '🐑 Sau', added_by: 'E2E Fake', photo: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=' },
       { id: 'c', name: 'Bestemors hjemmeost', type: '🧀', added_by: 'E2E Fake', photo: null },
       { id: 'd', name: 'Brie', type: '🐄 Ku', added_by: 'E2E Fake', photo: null },
     ]};
     enterWall(); setTab('nyeste');
   });
-  const bgs = await p.$$eval('.cheese .photo', els => els.map(e => ({ bg: e.style.backgroundImage, txt: e.textContent.trim() })));
+  // ostebildet er en <img> med onerror-fallback (cheeseImgHTML), ikke lenger
+  // en CSS background-image — src på <img> er derfor det relevante å sjekke
+  const bgs = await p.$$eval('.cheese .photo', els => els.map(e => {
+    const img = e.querySelector('img');
+    return { bg: img ? (img.getAttribute('src') || '') : '', txt: e.textContent.trim() };
+  }));
   const byIdx = i => bgs[i] || {};
   check('Comté uten foto får Wikimedia-bilde', bgs.some(x => x.bg.includes('upload.wikimedia.org') && x.bg.includes('Comte')), JSON.stringify(bgs.map(x=>x.bg.slice(0,60))));
   check('eget foto beholdes (Roquefort)', bgs.some(x => x.bg.includes('data:image')));

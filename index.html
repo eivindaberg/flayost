@@ -1474,19 +1474,37 @@ function kartIcon(emoji, home){
   });
 }
 /* ---------- regionvarmekart 🔥 — farge etter hvor godt ostene derfra dømmes ----------
-   Franske regiongrenser hentes lat (én gang) fra france-geojson; hver ost med
-   koordinater plasseres i sin region (punkt-i-polygon), og regionen farges etter
-   snittdommen. Gull-rampen er sekvensiell med validert monoton lyshet; emojiene
-   i tegnforklaringen bærer skalaen også for fargeblinde. Feiler stille uten nett. */
-const REGIONS_URL = 'https://cdn.jsdelivr.net/gh/gregoiredavid/france-geojson@master/regions-version-simplifiee.geojson';
+   Regiongrenser hentes lat (én gang per land) fra åpne geojson-kilder; hver ost
+   med koordinater plasseres i sin region (punkt-i-polygon), og regionen farges
+   etter snittdommen. Kun land med ekte, ostekulturelt distinkte regioner (Frankrike,
+   Italia, Sveits) får region-nivå — resten av verden får ett stempel per LAND
+   (se memberCountryStamps). Gull-rampen er sekvensiell med validert monoton
+   lyshet; emojiene i tegnforklaringen bærer skalaen også for fargeblinde.
+   Hvert land feiler for seg (ett dødt CDN velter ikke de andre). */
+const REGION_SOURCES = [
+  {country:'Frankrike', flag:'🇫🇷', nameKey:'nom',
+   url:'https://cdn.jsdelivr.net/gh/gregoiredavid/france-geojson@master/regions-version-simplifiee.geojson'},
+  {country:'Italia', flag:'🇮🇹', nameKey:'reg_name',
+   url:'https://cdn.jsdelivr.net/gh/openpolis/geojson-italy@master/geojson/limits_IT_regions.geojson'},
+  {country:'Sveits', flag:'🇨🇭', nameKey:'NAME',
+   url:'https://cdn.jsdelivr.net/gh/severinlandolt/map-switzerland@main/02%20GeoJSON/CH_Kantonsgrenzen_050_geo.json'},
+];
 const HEAT = ['#f7e6c3','#ecc27c','#d99b3c','#b26f14','#7f4a06'];   // indeks = rundet snitt 1–5
 let regionsGeo = null, regionsLayer = null, regionsPromise = null;
 
 function loadRegions(){
   if(regionsGeo) return Promise.resolve();
   if(regionsPromise) return regionsPromise;
-  regionsPromise = fetch(REGIONS_URL).then(r=>r.json()).then(g=>{ regionsGeo = g; })
-    .catch(()=>{ regionsPromise = null; });
+  regionsPromise = Promise.all(REGION_SOURCES.map(src =>
+    fetch(src.url).then(r=>r.json()).then(g => g.features.filter(f=>f.geometry).map(f => ({
+      ...f,
+      properties: {...f.properties, _country:src.country, _flag:src.flag, _stampName:f.properties[src.nameKey]}
+    }))).catch(()=>[])
+  )).then(perCountry => {
+    const features = perCountry.flat();
+    if(!features.length) throw new Error('regions_failed');
+    regionsGeo = {type:'FeatureCollection', features};
+  }).catch(()=>{ regionsPromise = null; });
   return regionsPromise;
 }
 function pip(lat, lng, ring){
@@ -1525,7 +1543,7 @@ function renderRegions(){
     onEachFeature: (f, layer) => {
       layer.bindPopup(()=>{
         const st = regionStats(f);
-        const navn = esc(f.properties.nom);
+        const navn = esc(f.properties._stampName);
         if(st.avg===null)
           return `<div class="kart-pop kart-rpop"><b>${navn}</b><br>Ingen oster herfra ennå – på tide med en handletur? 🧀</div>`;
         return `<div class="kart-pop kart-rpop"><b>${navn}</b><br>`
@@ -1898,6 +1916,26 @@ function memberStampFeatures(name){
     .map(f=>({f, oster: rated.filter(c=>inRegion(+c.lat, +c.lng, f))}))
     .filter(x=>x.oster.length);
 }
+const LAND_FLAG = {Storbritannia:'🇬🇧', Spania:'🇪🇸', Nederland:'🇳🇱', Hellas:'🇬🇷', Norge:'🇳🇴'};
+/* Land uten egen region-inndeling (Italia/Sveits er ekskludert — de har
+   region-stempler via memberStampFeatures) — ett stempel per land, ikke
+   ett felles «resten av verden»-stempel. Map<landnavn, oster[]>. */
+function memberCountryStamps(name){
+  const rated = BOARD.ratings.filter(r=>r.member===name)
+    .map(r=>BOARD.cheeses.find(c=>c.id===r.cheese_id))
+    .filter(c=>c && hasCoords(c));
+  const byLand = new Map();
+  rated.forEach(c=>{
+    const land = countryOf(+c.lat, +c.lng);
+    if(!land || REGION_SOURCES.some(s=>s.country===land)) return;
+    if(!byLand.has(land)) byLand.set(land, []);
+    byLand.get(land).push(c);
+  });
+  return byLand;
+}
+function memberStampCount(name){
+  return memberStampFeatures(name).length + memberCountryStamps(name).size;
+}
 function badgeStats(navn = SESS.name){
   const mine = BOARD.ratings.filter(r=>r.member===navn);
   const cheeses = mine.map(r=>BOARD.cheeses.find(c=>c.id===r.cheese_id)).filter(Boolean);
@@ -1941,7 +1979,9 @@ function badgeStats(navn = SESS.name){
     return alle.length>=3 && alle.every(o=>o.member===navn || o.updated_at>r.updated_at);
   });
   const stampF = memberStampFeatures(navn);
-  const regionNavn = new Set(stampF.map(x=>x.f.properties.nom));
+  // «Frankrike rundt»/«HELE Frankrike»-merkene teller kun franske regioner —
+  // Italia/Sveits-stempler (samme stampF-liste nå) skal ikke telle med der.
+  const regionNavnFR = new Set(stampF.filter(x=>x.f.properties._country==='Frankrike').map(x=>x.f.properties._stampName));
   // varianter: mine oster gruppert på grunnavn («Cheddar (18 mnd)» → cheddar)
   const varGrupper = {};
   cheeses.forEach(c=>{
@@ -2004,7 +2044,7 @@ function badgeStats(navn = SESS.name){
     rumpe: myStk.some(s=>s.stink===5),
     myStinks: myStk.length,
     abroad,
-    regions: stampF.length,
+    regions: regionNavnFR.size,
     allScores: new Set(mine.map(r=>r.score)).size===5,
     allStinks: new Set(myStk.map(s=>s.stink)).size===5,
     frokost: mine.some(r=>new Date(r.updated_at).getHours()<8),
@@ -2029,8 +2069,8 @@ function badgeStats(navn = SESS.name){
     luktblind: mine.length>=10 && myStk.length===0,
     allTex, jevnt, forsteSiste, bestRad, totalKm, fulltHus,
     dager: Object.keys(perDag).length,
-    harParis: regionNavn.has('Île-de-France'),
-    harKorsika: regionNavn.has('Corse'),
+    harParis: regionNavnFR.has('Île-de-France'),
+    harKorsika: regionNavnFR.has('Corse'),
   };
 }
 function earnedBadgesFor(navn){
@@ -2139,7 +2179,7 @@ function renderPass(){
         <span class="sc" style="font-size:16px; font-weight:800">${r.snitt.toFixed(1)} merker/smaker</span></div>`;
     }).join('');
   }
-  html += `<div class="fordeg-h">🛂 Stempler fra Frankrike</div>`;
+  html += `<div class="fordeg-h">🛂 Ostepasset</div>`;
   if(!regionsGeo){
     if(!passGeoTried){
       passGeoTried = true;
@@ -2150,32 +2190,49 @@ function renderPass(){
         <button class="ghost small" onclick="passGeoTried=false;renderPass()">Prøv igjen</button></p>`;
     }
   }else{
-    const gotten = new Map(memberStampFeatures(SESS.name).map(x=>[x.f.properties.nom, x.oster]));
-    const feats = [...regionsGeo.features].sort((a,b)=>{
-      const ga = gotten.has(a.properties.nom)?0:1, gb = gotten.has(b.properties.nom)?0:1;
-      return ga-gb || a.properties.nom.localeCompare(b.properties.nom,'fr');
+    const gotten = new Map(memberStampFeatures(SESS.name).map(x=>[x.f.properties._stampName, x.oster]));
+    // ett regionoppsett per land som faktisk lastet inn (REGION_SOURCES-rekkefølge)
+    REGION_SOURCES.forEach(src=>{
+      // enkelte regioner/kantoner har flere polygon-biter (øyer/enklaver) som
+      // egne features med samme navn — vis ett stempelkort per navn, ikke per bit
+      const seenNames = new Set();
+      const feats = regionsGeo.features.filter(f=>{
+        if(f.properties._country!==src.country) return false;
+        if(seenNames.has(f.properties._stampName)) return false;
+        seenNames.add(f.properties._stampName);
+        return true;
+      });
+      if(!feats.length) return; // dette landets kilde feilet — hopp stille over
+      const sorted = [...feats].sort((a,b)=>{
+        const ga = gotten.has(a.properties._stampName)?0:1, gb = gotten.has(b.properties._stampName)?0:1;
+        return ga-gb || a.properties._stampName.localeCompare(b.properties._stampName,'fr');
+      });
+      const n = sorted.filter(f=>gotten.has(f.properties._stampName)).length;
+      html += `<div class="fordeg-h">🛂 Stempler fra ${src.country} ${src.flag}</div>
+        <div class="passbar"><i style="width:${n/sorted.length*100}%"></i></div>
+        <p class="mini center" style="margin:-4px 0 10px"><b>${n} av ${sorted.length} regioner stemplet${n===sorted.length?'! 🎉'+src.flag:''}</b></p>
+        <div class="stamps">` + sorted.map(f=>{
+        const oster = gotten.get(f.properties._stampName);
+        return `<div class="stamp ${oster?'got':''}">
+          <svg class="sreg" viewBox="0 0 64 64" fill-rule="evenodd" aria-hidden="true">
+            <path d="${regionSVGPath(f, 64, 5)}"/></svg>
+          <b>${oster?'🧀 ':''}${esc(f.properties._stampName)}</b>
+          <span class="mini">${oster ? esc(oster.map(c=>c.name).join(', ')) : 'ikke smakt ennå'}</span></div>`;
+      }).join('') + '</div>';
     });
-    html += `<div class="passbar"><i style="width:${gotten.size/feats.length*100}%"></i></div>
-      <p class="mini center" style="margin:-4px 0 10px"><b>${gotten.size} av ${feats.length} regioner stemplet${gotten.size===feats.length?'! 🎉🇫🇷':''}</b></p>`;
-    html += `<div class="stamps">` + feats.map(f=>{
-      const oster = gotten.get(f.properties.nom);
-      return `<div class="stamp ${oster?'got':''}">
-        <svg class="sreg" viewBox="0 0 64 64" fill-rule="evenodd" aria-hidden="true">
-          <path d="${regionSVGPath(f, 64, 5)}"/></svg>
-        <b>${oster?'🧀 ':''}${esc(f.properties.nom)}</b>
-        <span class="mini">${oster ? esc(oster.map(c=>c.name).join(', ')) : 'ikke smakt ennå'}</span></div>`;
-    }).join('');
-    const abroad = BOARD.ratings.filter(r=>r.member===SESS.name)
-      .map(r=>BOARD.cheeses.find(c=>c.id===r.cheese_id))
-      .filter(c=>c && hasCoords(c) && !inFrance(+c.lat, +c.lng));
-    if(abroad.length)
-      html += `<div class="stamp got"><span class="semo">🌍</span><b>Resten av verden</b>
-        <span class="mini">${esc(abroad.map(c=>c.name).join(', '))}</span></div>`;
-    html += '</div>';
+    // land uten egen region-inndeling — ett stempel per land, ikke ett felles «resten av verden»
+    const landStempler = memberCountryStamps(SESS.name);
+    if(landStempler.size){
+      html += `<div class="fordeg-h">🌍 Andre land</div><div class="stamps">`
+        + [...landStempler.entries()].map(([land, oster])=>
+          `<div class="stamp got"><span class="semo">${LAND_FLAG[land]||'🌍'}</span><b>${esc(land)}</b>
+            <span class="mini">${esc(oster.map(c=>c.name).join(', '))}</span></div>`
+        ).join('') + '</div>';
+    }
     const others = BOARD.members.filter(m=>m.name!==SESS.name);
     if(others.length){
       html += `<div class="fordeg-h">👨‍👩‍👧‍👦 Familiens stempler</div>` + others.map(m=>{
-        const n = memberStampFeatures(m.name).length;
+        const n = memberStampCount(m.name);
         return `<div class="rline"><span class="ava">${esc(m.avatar)}</span><span class="who">${esc(m.name)}</span>
           ${m.family ? `<span class="mini" style="margin-left:6px">🏡 ${esc(m.family)}</span>` : ''}
           <span class="sc" style="font-size:16px; font-weight:800">${n} ${n===1?'stempel':'stempler'} 🧀</span></div>`;
