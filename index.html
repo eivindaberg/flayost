@@ -1286,10 +1286,12 @@ function renderRoundAdminList(){
   if(!wrap) return;
   if(!BOARD.round){ closeRoundAdmin(); return; }
   const list = BOARD.cheeses.filter(c=>c.round_id===BOARD.round.id);
-  wrap.innerHTML = list.length ? list.map(c=>
-    `<div class="rline"><span class="ava">${esc((c.type||'🧀').split(' ')[0]||'🧀')}</span>
-      <span class="who">${esc(splitVariant(c.name).base)}</span></div>`
-  ).join('') : `<p class="mini center">Ingen oster lagt til ennå — trykk «➕ Legg til ny ost» under, eller søk opp en du alt har registrert.</p>`;
+  wrap.innerHTML = list.length ? list.map(c=>{
+    const nv = splitVariant(c.name);
+    return `<div class="rline" style="cursor:pointer" onclick="closeRoundAdmin(); openDetail('${c.id}')">
+      <span class="ava">${esc((c.type||'🧀').split(' ')[0]||'🧀')}</span>
+      <span class="who">${esc(nv.base)}${nv.vari ? ' · '+esc(nv.vari) : ''}</span></div>`;
+  }).join('') : `<p class="mini center">Ingen oster lagt til ennå — trykk «➕ Legg til ny ost» under, eller søk opp en du alt har registrert.</p>`;
 }
 function roundExistingCandidates(q){
   const f = fold(q);
