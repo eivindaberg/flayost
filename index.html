@@ -87,7 +87,8 @@
   .tab.on{background:var(--ink); color:#fff;}
   .wall{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px;}
   .cheese{background:var(--card); border-radius:20px; overflow:hidden; box-shadow:0 8px 24px rgba(80,50,10,.13); display:flex; flex-direction:column;}
-  .cheese .photo{height:150px; background:var(--ochre-soft); display:flex; align-items:center; justify-content:center; font-size:64px; cursor:pointer; background-size:cover; background-position:center;}
+  .cheese .photo{height:150px; background:var(--ochre-soft); display:flex; align-items:center; justify-content:center; font-size:64px; cursor:pointer; overflow:hidden;}
+  .cheese .photo img{width:100%; height:100%; object-fit:cover; display:block;}
   .cheese .body{padding:12px 14px 14px;}
   .cheese .name-row{display:flex; align-items:baseline; gap:8px; cursor:pointer;}
   .cheese .name{font-size:19px; font-weight:900; flex:1;}
@@ -187,7 +188,8 @@
   .badges,.stamps,.korter{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px;}
   /* ---------- kort 🎴 ---------- */
   .kort{background:var(--card); border-radius:18px; overflow:hidden; box-shadow:0 8px 24px rgba(80,50,10,.13); text-align:center; border:3px solid var(--ochre-soft);}
-  .kort .kimg{height:110px; background:var(--ochre-soft); background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; font-size:44px;}
+  .kort .kimg{height:110px; background:var(--ochre-soft); display:flex; align-items:center; justify-content:center; font-size:44px; overflow:hidden;}
+  .kort .kimg img{width:100%; height:100%; object-fit:cover; display:block;}
   .kort .kbody{padding:9px 8px 11px;}
   .kort b{display:block; font-size:13px; margin-bottom:2px;}
   .kort.unmatched{border-color:var(--line); opacity:.75;}
@@ -750,7 +752,7 @@ const CHEESES_FR = [
   {name:'Brousse du Rove', milk:'Geit', origin:'Le Rove (Provence)', lat:43.3692, lng:5.2506, tex:'Fersk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Brousse_du_Rove_01666.jpg/500px-Brousse_du_Rove_01666.jpg'},
   {name:'Tomme de Provence', milk:'Geit', origin:'Provence', lat:43.9000, lng:6.0000, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Tomme_de_Provence_dans_une_fromagerie_d%27Arles.jpg/500px-Tomme_de_Provence_dans_une_fromagerie_d%27Arles.jpg'},
   {name:"Poivre d'âne", milk:'Geit', origin:'Provence', lat:43.9000, lng:5.8000, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Poivre_d%27ane_et_AOC_Ventoux.jpg/500px-Poivre_d%27ane_et_AOC_Ventoux.jpg'},
-  {name:'Bûche de chèvre', milk:'Geit', origin:'Poitou', lat:46.6486, lng:-0.2478, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Principales_AOC_France.jpg/500px-Principales_AOC_France.jpg'},
+  {name:'Bûche de chèvre', milk:'Geit', origin:'Poitou', lat:46.6486, lng:-0.2478, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/B%C3%BBche_de_Ch%C3%A8vre.jpg/500px-B%C3%BBche_de_Ch%C3%A8vre.jpg'},
   // sau og Korsika
   {name:'Brocciu', milk:'Sau', origin:'Korsika', lat:42.1500, lng:9.0833, tex:'Fersk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Brocciu2.jpg/500px-Brocciu2.jpg'},
   {name:"Brin d'Amour", milk:'Sau', origin:'Korsika', lat:42.3000, lng:9.1500, tex:'Myk', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Wikicheese_-_Fleur_du_Maquis_-_20150417_-_005.jpg/500px-Wikicheese_-_Fleur_du_Maquis_-_20150417_-_005.jpg'},
@@ -847,6 +849,17 @@ function toast(msg){
   clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove('show'), 2600);
 }
 function esc(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+/* Ostebilde med innebygd fallback — GENERELL REGEL for ostebilder i appen:
+   bruk alltid denne (aldri rå <img>/background-image) så et manglende ELLER
+   dødt/feil bilde alltid faller tilbake til en emoji i stedet for en tom
+   eller ødelagt firkant. Samme knep som detaljvisningens dphoto: et vanlig
+   <img> med onerror som bytter ut seg selv med emojien når lastingen feiler. */
+function cheeseImgHTML(src, emoji){
+  emoji = esc(emoji || '🧀');
+  return src
+    ? `<img src="${esc(src)}" alt="" onerror="this.outerHTML='${emoji}'">`
+    : emoji;
+}
 function confetti(x, y, emoji, alt){
   for(let i=0;i<10;i++){
     const c = document.createElement('div');
@@ -1345,9 +1358,8 @@ function cheeseCard(c){
   const card = document.createElement('div');
   card.className='cheese';
   const src = c.photo || webImgFor(c.name);
-  const photo = src
-    ? `<div class="photo" style="background-image:url('${src}')" onclick="openDetail('${c.id}')"></div>`
-    : `<div class="photo" onclick="openDetail('${c.id}')">${esc((c.type||'🧀').split(' ')[0]||'🧀')}</div>`;
+  const emoji = (c.type||'🧀').split(' ')[0]||'🧀';
+  const photo = `<div class="photo" onclick="openDetail('${c.id}')">${cheeseImgHTML(src, emoji)}</div>`;
   const emos = [1,2,3,4,5].map(s=>
     `<button class="${mine && mine.score===s ? 'on':''}" onclick="rate('${c.id}',${s},event)">${EMO[s]}</button>`
   ).join('');
@@ -2203,7 +2215,7 @@ async function renderKort(){
       const sub = c.matched ? `${emo} ${c.milk}${c.tex ? ' · '+c.tex : ''}` : 'Ny for katalogen! 🕵️';
       const img = c.img;
       return `<div class="kort${c.matched?'':' unmatched'}">
-        <div class="kimg"${img?` style="background-image:url('${esc(img)}')"`:''}>${img?'':'🧀'}</div>
+        <div class="kimg">${cheeseImgHTML(img, '🧀')}</div>
         <div class="kbody"><b>${esc(name)}</b><span class="mini">${esc(sub)}</span></div>
       </div>`;
     }).join('') + '</div>';
@@ -2315,7 +2327,7 @@ function renderDetail(){
     `<button class="${mstk && mstk.stink===s?'on':''}" onclick="rateStink('${c.id}',${s},event)">${STINK[s]}</button>`
   ).join('');
   $('dStinkHint').innerHTML = mstk ? esc(STINK[mstk.stink]+' '+STINK_WORD[mstk.stink]) + hintUnrate(true) : 'Lukt på osten og trykk!';
-  $('dNote').value = mine ? (mine.note||'') : '';
+  if(document.activeElement !== $('dNote')) $('dNote').value = mine ? (mine.note||'') : '';
   const list = $('dRatings'); list.innerHTML='';
   const rs = ratingsFor(c.id).sort((a,b)=>b.score-a.score);
   const stks = stinksFor(c.id);
