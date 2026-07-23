@@ -1366,7 +1366,9 @@ function cheeseCard(c){
     `<button class="${mine && mine.score===s ? 'on':''}" onclick="rate('${c.id}',${s},event)">${EMO[s]}</button>`
   ).join('');
   const ms = myStink(c.id), as = avgStink(c.id);
-  const stinks = [1,2,3,4,5].map(s=>
+  // stinkraden vises speilvendt (5→1): mildest (🌸) skal havne til høyre,
+  // på linje med beste smaksdom, i stedet for til venstre som 1→5 ga
+  const stinks = [5,4,3,2,1].map(s=>
     `<button class="${ms && ms.stink===s ? 'on':''}" onclick="rateStink('${c.id}',${s},event)">${STINK[s]}</button>`
   ).join('');
   card.innerHTML = `
@@ -2382,7 +2384,8 @@ function renderDetail(){
   ).join('');
   $('dHint').innerHTML = mine ? esc(EMO[mine.score]+' '+EMO_WORD[mine.score]) + hintUnrate(false) : 'Trykk på en smiley!';
   const mstk = myStink(c.id);
-  $('dStinkRow').innerHTML = [1,2,3,4,5].map(s=>
+  // speilvendt av samme grunn som i cheeseCard(): mildest (🌸) til høyre
+  $('dStinkRow').innerHTML = [5,4,3,2,1].map(s=>
     `<button class="${mstk && mstk.stink===s?'on':''}" onclick="rateStink('${c.id}',${s},event)">${STINK[s]}</button>`
   ).join('');
   $('dStinkHint').innerHTML = mstk ? esc(STINK[mstk.stink]+' '+STINK_WORD[mstk.stink]) + hintUnrate(true) : 'Lukt på osten og trykk!';
