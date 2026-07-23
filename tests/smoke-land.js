@@ -8,7 +8,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log(ok ? '  ✅' : '
 (async () => {
   const b = await chromium.launch({ executablePath: path.join(base, dir, sub, 'chrome-headless-shell') });
   const p = await b.newPage();
-  await p.goto('http://localhost:8899/index.html', { waitUntil: 'domcontentloaded' });
+  await p.goto('http://localhost:8899/app.html', { waitUntil: 'domcontentloaded' });
 
   /* 1. countryOf: kjente osteområder havner i riktig land */
   const geo = await p.evaluate(() => ({

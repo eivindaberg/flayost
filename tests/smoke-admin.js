@@ -8,7 +8,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log(ok ? '  ✅' : '
 (async () => {
   const b = await chromium.launch({ executablePath: path.join(base, dir, sub, 'chrome-headless-shell') });
   const p = await b.newPage();
-  await p.goto('http://localhost:8899/index.html', { waitUntil: 'domcontentloaded' });
+  await p.goto('http://localhost:8899/app.html', { waitUntil: 'domcontentloaded' });
   const r = await p.evaluate(async () => {
     const login = await rpc('flayost_login', { p_name: 'E2E Admin', p_pin: '9876', p_avatar: '🦊', p_is_kid: false, p_create: true });
     const add = await rpc('flayost_add_cheese', { p_name: 'E2E Admin', p_pin: '9876', p_cheese_name: 'E2E Sletteost', p_type: '🧀', p_photo: null, p_origin: '', p_lat: null, p_lng: null });

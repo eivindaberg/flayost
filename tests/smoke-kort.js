@@ -12,7 +12,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log(ok ? '  ✅' : '
 (async () => {
   const b = await chromium.launch({ executablePath: path.join(base, dir, sub, 'chrome-headless-shell') });
   const p = await b.newPage();
-  await p.goto('http://localhost:8899/index.html', { waitUntil: 'domcontentloaded' });
+  await p.goto('http://localhost:8899/app.html', { waitUntil: 'domcontentloaded' });
 
   const flow = await p.evaluate(async () => {
     await rpc('flayost_login', { p_name: 'E2E Kort', p_pin: '3333', p_avatar: '🦔', p_is_kid: true, p_create: true });

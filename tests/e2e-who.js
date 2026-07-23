@@ -21,7 +21,7 @@ function check(name, ok, extra) {
 (async () => {
   const browser = await chromium.launch({ executablePath: EXEC });
   const page = await browser.newPage(); // fersk kontekst = tom localStorage
-  await page.goto('http://localhost:8899/index.html', { waitUntil: 'domcontentloaded' });
+  await page.goto('http://localhost:8899/app.html', { waitUntil: 'domcontentloaded' });
 
   // vent på at flayost_who-svaret har rukket å rendre
   await page.waitForFunction(() => document.querySelectorAll('#memberButtons .member-btn').length > 0, { timeout: 10000 }).catch(() => {});

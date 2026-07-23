@@ -21,7 +21,7 @@ function check(name, ok, extra) {
 (async () => {
   const browser = await chromium.launch({ executablePath: EXEC });
   const page = await browser.newPage();
-  const url = 'http://localhost:8899/index.html';
+  const url = 'http://localhost:8899/app.html';
   await page.goto(url, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(500);
 

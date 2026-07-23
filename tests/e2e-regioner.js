@@ -21,7 +21,7 @@ function check(name, ok, extra) {
 (async () => {
   const browser = await chromium.launch({ executablePath: EXEC });
   const page = await browser.newPage();
-  await page.goto('http://localhost:8899/index.html', { waitUntil: 'domcontentloaded' });
+  await page.goto('http://localhost:8899/app.html', { waitUntil: 'domcontentloaded' });
 
   /* ---- 1. regionautocomplete i «Ny ost» ---- */
   await page.evaluate(() => openAdd());

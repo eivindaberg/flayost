@@ -8,7 +8,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log(ok ? '  ✅' : '
 (async () => {
   const b = await chromium.launch({ executablePath: path.join(base, dir, sub, 'chrome-headless-shell') });
   const p = await b.newPage();
-  await p.goto('http://localhost:8899/index.html', { waitUntil: 'domcontentloaded' });
+  await p.goto('http://localhost:8899/app.html', { waitUntil: 'domcontentloaded' });
 
   // rikt bo: 50 oster (10 geit), alle 5 dommer og lukttrinn brukt, én dom kl 06:30
   const rich = await p.evaluate(() => {
