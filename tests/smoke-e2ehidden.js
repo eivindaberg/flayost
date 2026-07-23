@@ -1,6 +1,16 @@
 /* smoke: E2E-testdata skal ALDRI vises til ekte familiemedlemmer, selv om
    opprydding skulle glippe. Regresjon for 2026-07-20-hendelsen der 12
-   E2E-oster ble stående på tavla etter en avbrutt testkjøring. */
+   E2E-oster ble stående på tavla etter en avbrutt testkjøring.
+
+   2026-07-23: «E2E-utenom Fam» (bindestrek, ikke mellomrom) var ment å late
+   som et EKTE medlem for sjekk #2 under, men navnet startet fortsatt på
+   «E2E» og filteret dengang matchet kun 'E2E ' (med mellomrom) — så denne
+   kontoen sto synlig på familiens ekte innloggingsskjerm i tre dager.
+   Filteret er nå bredere ('E2E%', se migrasjon …0723000002), så stand-in-
+   kontoen MÅ hete noe som ikke begynner på E2E i det hele tatt (ellers ville
+   den selv fått v_show_e2e=true og sett andre E2E-testeres søppel — som
+   ville ødelagt akkurat det denne testen skal bevise). Den rydder derfor
+   seg selv opp til slutt i stedet for å stole på tests/run.sh sin E2E%-feie. */
 const { chromium } = require('playwright-core');
 const path = require('path'), os = require('os'), fs = require('fs');
 const base = path.join(os.homedir(), 'Library/Caches/ms-playwright');
@@ -27,17 +37,18 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log(ok ? '  ✅' : '
     const board = await rpc('flayost_get_board', { p_name: 'Eivind', p_pin: '0000' }).catch(e => ({ ok: false, error: 'wrong_pin' }));
     // (PIN-en over stemmer nesten sikkert ikke — vi trenger bare responsen
     // for å sjekke at den EVENTUELT lykkes-varianten aldri ville lekke E2E.
-    // Bruk i stedet en fersk, ekte (ikke-E2E) test-konto med kjent PIN:)
-    await rpc('flayost_login', { p_name: 'E2E-utenom Fam', p_pin: '4444', p_avatar: '🦊', p_is_kid: true, p_create: true });
-    const realBoard = await rpc('flayost_get_board', { p_name: 'E2E-utenom Fam', p_pin: '4444' });
+    // Bruk i stedet en fersk, ekte (IKKE E2E-prefikset i det hele tatt)
+    // test-konto med kjent PIN — se filhode-kommentaren for hvorfor:
+    await rpc('flayost_login', { p_name: 'Ikke-E2E Test', p_pin: '4444', p_avatar: '🦊', p_is_kid: true, p_create: true });
+    const realBoard = await rpc('flayost_get_board', { p_name: 'Ikke-E2E Test', p_pin: '4444' });
 
     return { who, realBoard, ghostCheeseId: add.id };
   });
 
-  check('flayost_who viser aldri E2E-navn', !r.who.some(m => m.name.startsWith('E2E ')), JSON.stringify(r.who.filter(m=>m.name.startsWith('E2E'))));
-  check('ekte medlem ser ALDRI E2E-oster i get_board', !r.realBoard.cheeses.some(c => c.name.startsWith('E2E ')), JSON.stringify(r.realBoard.cheeses.filter(c=>c.name?.startsWith('E2E'))));
-  check('ekte medlem ser ALDRI E2E-medlemmer i get_board', !r.realBoard.members.some(m => m.name.startsWith('E2E ')), JSON.stringify(r.realBoard.members.filter(m=>m.name.startsWith('E2E'))));
-  check('ekte medlem ser ALDRI E2E-dommer i get_board', !r.realBoard.ratings.some(rt => rt.member.startsWith('E2E ')));
+  check('flayost_who viser aldri E2E-navn', !r.who.some(m => m.name.startsWith('E2E')), JSON.stringify(r.who.filter(m=>m.name.startsWith('E2E'))));
+  check('ekte medlem ser ALDRI E2E-oster i get_board', !r.realBoard.cheeses.some(c => c.name.startsWith('E2E')), JSON.stringify(r.realBoard.cheeses.filter(c=>c.name?.startsWith('E2E'))));
+  check('ekte medlem ser ALDRI E2E-medlemmer i get_board', !r.realBoard.members.some(m => m.name.startsWith('E2E')), JSON.stringify(r.realBoard.members.filter(m=>m.name.startsWith('E2E'))));
+  check('ekte medlem ser ALDRI E2E-dommer i get_board', !r.realBoard.ratings.some(rt => rt.member.startsWith('E2E')));
 
   // men EN E2E-konto ser fortsatt SIN EGEN testdata (tester trenger dette)
   const own = await p.evaluate(async ghostId => {
@@ -53,5 +64,25 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log(ok ? '  ✅' : '
   check('klienten viser aldri en E2E-knapp selv om servergrunnlaget skulle inneholde en', !buttons.some(t => t.includes('E2E')), JSON.stringify(buttons));
 
   await b.close();
+
+  // «Ikke-E2E Test» begynner med vilje ikke på E2E (se filhode), så
+  // tests/run.sh sin E2E%-opprydding fanger den ALDRI — rydd den selv.
+  try {
+    const https = require('https');
+    const { execSync } = require('child_process');
+    const raw = execSync('security find-generic-password -s "Supabase CLI" -w 2>/dev/null | sed "s/go-keyring-base64://" | base64 -d', { encoding: 'utf8' }).trim();
+    if (raw) {
+      await new Promise((resolve) => {
+        const body = JSON.stringify({ query: "delete from flayost_members where name = 'Ikke-E2E Test';" });
+        const req = https.request('https://api.supabase.com/v1/projects/fvafwggxvnsmqedmdmdz/database/query', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${raw}`, 'Content-Type': 'application/json' },
+        }, res => { res.on('data', () => {}); res.on('end', resolve); });
+        req.on('error', resolve);
+        req.write(body); req.end();
+      });
+    }
+  } catch (e) { /* opprydding er best-effort — feiler den, rydd manuelt senere */ }
+
   console.log(`\n${pass} ok, ${fail} feil`); process.exit(fail ? 1 : 0);
 })().catch(e => { console.error('❌', e.message); process.exit(1); });

@@ -823,11 +823,11 @@ try{ SESS = JSON.parse(localStorage.getItem(LS_SESS)) || null; }catch(e){}
    synk). Kjøres på alt som kommer inn i BOARD, både cache og server. */
 function stripE2E(b){
   if(!b) return b;
-  if(Array.isArray(b.members)) b.members = b.members.filter(m=>!String(m.name||'').startsWith('E2E '));
-  if(Array.isArray(b.cheeses)) b.cheeses = b.cheeses.filter(c=>!String(c.name||'').startsWith('E2E ') && !String(c.added_by||'').startsWith('E2E '));
-  if(Array.isArray(b.ratings)) b.ratings = b.ratings.filter(r=>!String(r.member||'').startsWith('E2E '));
-  if(Array.isArray(b.stinks)) b.stinks = b.stinks.filter(s=>!String(s.member||'').startsWith('E2E '));
-  if(b.round && String(b.round.started_by||'').startsWith('E2E ')) b.round = null;
+  if(Array.isArray(b.members)) b.members = b.members.filter(m=>!String(m.name||'').startsWith('E2E'));
+  if(Array.isArray(b.cheeses)) b.cheeses = b.cheeses.filter(c=>!String(c.name||'').startsWith('E2E') && !String(c.added_by||'').startsWith('E2E'));
+  if(Array.isArray(b.ratings)) b.ratings = b.ratings.filter(r=>!String(r.member||'').startsWith('E2E'));
+  if(Array.isArray(b.stinks)) b.stinks = b.stinks.filter(s=>!String(s.member||'').startsWith('E2E'));
+  if(b.round && String(b.round.started_by||'').startsWith('E2E')) b.round = null;
   return b;
 }
 try{ BOARD = stripE2E(JSON.parse(localStorage.getItem(LS_BOARD))) || BOARD; }catch(e){}
@@ -1001,7 +1001,7 @@ async function loadWho(){
   try{
     const list = await rpc('flayost_who', {});
     if(Array.isArray(list)){
-      WHO = list.filter(m=>!String(m.name||'').startsWith('E2E '));
+      WHO = list.filter(m=>!String(m.name||'').startsWith('E2E'));
       // ikke riv brukeren ut av PIN- eller ny-smaker-steget
       if(!SESS && !$('login-who').classList.contains('hidden')) showWho();
     }
@@ -1015,7 +1015,7 @@ function showWho(){
   const wrap = $('memberButtons'); wrap.innerHTML='';
   // render-tids sikkerhetsnett i tillegg til loadWho()/stripE2E() —
   // uansett kilde skal en E2E-testkonto aldri kunne vises som en knapp
-  const members = ((WHO && WHO.length) ? WHO : BOARD.members).filter(m=>!String(m.name||'').startsWith('E2E '));
+  const members = ((WHO && WHO.length) ? WHO : BOARD.members).filter(m=>!String(m.name||'').startsWith('E2E'));
   // grupper knappene per familiegruppe når noen har valgt en; ugrupperte sist
   const grupper = new Map();
   members.forEach(m=>{
